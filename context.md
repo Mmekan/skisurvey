@@ -10,9 +10,11 @@
 
 ## Read this first — the three things that matter most
 
-1. **Nothing here is in version control.** `SKI SURVEY/` is not a git repository. A `.gitignore` exists, but nothing is tracked, there is no remote, and there is no backup. Every line of work so far exists in exactly one folder on one machine. `git init` + a first commit is the highest-value action available, and it takes two minutes.
-2. **The survey's wording is partly invented.** All 15 `TODO` placeholders in `questions.json` were filled with drafted content because the original 54-question source document was not available in that session. The survey is end-to-end testable, but the wording is **not** verbatim from the real instrument. It must be cross-checked before the survey is fielded with real respondents, or the data will not mean what it appears to mean.
+1. **The survey's wording is partly invented.** All 15 `TODO` placeholders in `questions.json` were filled with drafted content because the original 54-question source document was not available in that session. The survey is end-to-end testable, but the wording is **not** verbatim from the real instrument. It must be cross-checked before the survey is fielded with real respondents, or the data will not mean what it appears to mean.
+2. **A Supabase schema patch is waiting to be run.** `supabase-contacts-patch.sql` adds a unique index and two RLS policies that the phone-number fix depends on. Until it's applied in the SQL Editor, Q53_54 writes fail *silently*. See "Fixes applied during handoff" below.
 3. **This is a research instrument, not a product.** The thesis is what matters. Phases 0–3 built the instrument; the survey existing and looking good is not evidence the thesis holds. Only data from real students can answer that.
+
+*(Version control was the previous item here. It's now resolved — see below.)*
 
 ---
 
@@ -198,24 +200,40 @@ Targeted `?src=` channel links, not open social-media blasts. `SurveyScreen` alr
 
 ## Known problems
 
-Full detail, with severity and confidence, is in `CLAUDE.md` §"Bug list". The four that most affect the research:
+Full detail, with severity and confidence, is in `CLAUDE.md` §"Bug list". The two data-integrity bugs that were blocking Phase 4/7 analysis were **fixed on 2026-10-03** — see "Fixes applied during handoff" below. What remains:
 
-**1. `completed_at` is never written.** An abandoned response at Q4 looks identical to a completed one in the database. Completion rate is a core survey-quality metric and it cannot be computed until this exists. Blocks meaningful Phase 7 analysis.
+**1. Answer changes can desync the question index.** `index` is a raw integer into `visibleQuestions`, which is recomputed from `answers` on every change. Going back and changing a `showIf`-gating answer (Q21 "Never" → "Sometimes" un-gates Q23) shifts the array and can silently skip a question. Reasoned from the code; not yet reproduced in a browser.
 
-**2. The `contacts` table is never written.** Q53_54's phone number is upserted into `answers` like any other answer, because `SurveyScreen` treats every question identically. The table exists specifically so consent-bearing numbers are separable and purgeable. Right now a consented phone number sits in the general answers table where a retention purge would miss it. This is a privacy/consent defect, not a tidiness issue.
+**2. `questions.json` wording is drafted, not verbatim.** See the second item under "Read this first". This is the one that would most damage the research if overlooked, because the survey would run and produce data that doesn't mean what the sealed Phase-0 rules assume it means.
 
-**3. Answer changes can desync the question index.** `index` is a raw integer into `visibleQuestions`, which is recomputed from `answers` on every change. Going back and changing a `showIf`-gating answer (Q21 "Never" → "Sometimes" un-gates Q23) shifts the array and can silently skip a question. Reasoned from the code; not yet reproduced in a browser.
-
-**4. `questions.json` wording is drafted, not verbatim.** See the second item under "Read this first". This is the one that would most damage the research if overlooked, because the survey would run and produce data that doesn't mean what the sealed Phase-0 rules assume it means.
+**3. `supabase-contacts-patch.sql` must be run in Supabase before the phone-number fix works.** The code is written and the build passes, but it depends on a unique index and two RLS policies that don't exist yet in the live database. Until the patch is applied, Q53_54 writes will appear to succeed and land nowhere.
 
 ### Also outstanding
 
 - **No deduplication.** Clearing localStorage mid-survey creates a second `respondents` row with no way to merge them.
 - **`localStorage` parsing is unguarded.** One corrupted key white-screens the app with no recovery path.
 - **Dictation is a no-op on unsupported browsers** (notably iOS Safari) but the button still renders. Several required questions depend on typing.
-- **Test debris in the repo root:** `final-check.png` and `.playwright-cli/` (console logs, page YAML). Neither is gitignored.
 - **Dead Vite scaffolding:** `src/App.css`, `src/assets/{hero.png,react.svg,vite.svg}` — nothing imports them.
 - **`README.md` is still the Vite template default.**
+
+---
+
+## Fixes applied during handoff (2026-10-03)
+
+Two data-integrity bugs were fixed, plus the version-control gap:
+
+**Git repository created.** Initial commit `3653b6e` with 34 files. `.env.local`, `.playwright-cli/`, and screenshot debris were all confirmed excluded before committing. The `.gitignore` was extended to cover Playwright CLI artifacts and local screenshots so they can't be committed by accident later.
+
+**`completed_at` is now written.** `SurveyScreen` detects `index >= visibleQuestions.length` and fires a one-shot update on the respondent row. A new `ThankYouScreen` renders at that point instead of the old placeholder string. Completion rate is now computable, which unblocks Phase 7 analysis.
+
+**Q53_54 now writes to `contacts`, not `answers`.** `saveAnswer` special-cases the contact question so the phone number never enters the general answers table. Three details that matter:
+- Writes are **debounced 600ms**, because the field saves on every keystroke and each write is a network round trip.
+- The unmount cleanup **flushes** a pending write instead of cancelling it — otherwise closing the tab inside the debounce window would silently lose a consented number.
+- Clearing the field **deletes** the row rather than skipping the insert, so a number someone removed is actually gone.
+
+**A schema patch was required and is written but NOT yet applied.** While implementing this, the existing RLS policies were checked and `contacts` turned out to have an **INSERT policy only** — no UPDATE, no DELETE — and no unique constraint on `respondent_id`. Under RLS, an operation with no matching policy is rejected *without raising an error*, so the upsert and the delete would have silently affected zero rows while appearing to save. That's the same class of trap as the `RETURNING` problem documented in `PROJECT_BIBLE.md` §12 — a write that fails invisibly rather than loudly.
+
+`supabase-contacts-patch.sql` adds the missing unique index plus the two policies. **Run it in Supabase → SQL Editor before testing the phone field.** It's idempotent and safe to re-run. Until then, treat Q53_54 as unverified.
 
 ---
 
@@ -223,31 +241,23 @@ Full detail, with severity and confidence, is in `CLAUDE.md` §"Bug list". The f
 
 In order. Items 1–3 are prerequisites for real work; 4 onward is the Phase 3 → Phase 5 path.
 
-**1. Put this in version control. (Highest value, ~2 minutes.)**
+**1. Run the Supabase patch.** Open `supabase-contacts-patch.sql` in this repo and run it in Supabase → SQL Editor. It's idempotent. Without it, Q53_54 phone numbers silently fail to save and Q53_54 is unverified.
 
-```bash
-cd "C:/REACT/SKI SURVEY/ski-survey"
-git init
-# add .playwright-cli/ and screenshot debris to .gitignore first
-git add .
-git commit -m "SKI survey: Phase 0-3 complete, docs"
-```
+**2. Test the two fixes end to end.** Start `npm run dev`, answer through to the end, and confirm in Supabase that (a) the respondent row has `completed_at` set, and (b) entering a phone number creates a row in `contacts` and *not* in `answers`. Then edit the number, clear it, and confirm the `contacts` row updates and deletes correctly.
 
-Then create a private GitHub repo and push. This must happen before the account migration, not after — the whole point of migrating is that the work survives, and right now it survives only as loose files in one folder.
+**3. Delete test debris.** `final-check.png` and `.playwright-cli/`. Both are now gitignored, but they're still on disk.
 
-**2. Delete test debris.** `final-check.png` and `.playwright-cli/`. Gitignore both patterns so they don't come back.
+**4. Push to GitHub.** A local commit exists (`3653b6e`); the remote isn't configured yet — see the note below.
 
-**3. Clean up dead scaffolding.** Delete `src/App.css`, `src/assets/hero.png`, `src/assets/react.svg`, `src/assets/vite.svg`. Replace `README.md` with something that says what this project actually is — the Vite default will actively mislead whoever picks this up next.
+**5. Clean up dead scaffolding.** Delete `src/App.css`, `src/assets/hero.png`, `src/assets/react.svg`, `src/assets/vite.svg`. Replace `README.md` with something that says what this project actually is — the Vite default will actively mislead whoever picks this up next.
 
-**4. Fix the two data-integrity bugs** (`CLAUDE.md` bug list items 1 and 2). Write `completed_at` when the survey finishes, and route Q53_54's phone number to `contacts` instead of `answers`. Both need a completion screen to exist first, so build that screen as part of this step.
+**6. Verify on real hardware.** On the iPhone 11 Pro: check the notch and status-bar area matches the page colour, check the overscroll bounce, check dictation actually works, and check the thank-you screen renders. None of this can be tested headless.
 
-**5. Verify on real hardware.** On the iPhone 11 Pro: check the notch and status-bar area matches the page colour, check the overscroll bounce, and check dictation actually works. None of this can be tested headless.
+**7. Test on a low-end Android over mobile data.** This is Phase 3's actual "done when" criterion and hasn't been done. Nigerian students are on mobile data and low-end devices — every KB of payload is friction.
 
-**6. Test on a low-end Android over mobile data.** This is Phase 3's actual "done when" criterion and hasn't been done. Nigerian students are on mobile data and low-end devices — every KB of payload is friction.
+**8. Cross-check `questions.json` against the original 54-question document.** Do this **before any pilot or fielding.** Pay particular attention to Q12 and Q15, which touch the lecturer-related options that Phase 0 identified as bias traps. If the drafted wording lets a rule pass that the sealed rule intended to fail, the study's conclusions are wrong.
 
-**7. Cross-check `questions.json` against the original 54-question document.** Do this **before any pilot or fielding.** Pay particular attention to Q12 and Q15, which touch the lecturer-related options that Phase 0 identified as bias traps. If the drafted wording lets a rule pass that the sealed rule intended to fail, the study's conclusions are wrong.
-
-**8. Run the Phase 5 pilot** — 5–8 students, in person, timed, unhelped. Success criteria are already written in `PROJECT_BIBLE.md` §11: median under 12 minutes, 6 of 8 finish, nobody asks "what does this mean?" Purge pilot rows before fielding (`is_test` flag exists for exactly this).
+**9. Run the Phase 5 pilot** — 5–8 students, in person, timed, unhelped. Success criteria are already written in `PROJECT_BIBLE.md` §11: median under 12 minutes, 6 of 8 finish, nobody asks "what does this mean?" Purge pilot rows before fielding (`is_test` flag exists for exactly this).
 
 ---
 

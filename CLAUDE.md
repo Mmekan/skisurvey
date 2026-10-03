@@ -57,7 +57,7 @@ Installed globally (available to this user on every machine, but **not** carried
 
 ### Routing and screens
 
-`src/App.tsx` — `BrowserRouter`, two routes: `/` → `WelcomeScreen`, `/survey` → `SurveyScreen`. No other routes exist yet. There is **no thank-you/completion screen** — `SurveyScreen` renders a placeholder string when it runs off the end of the question list.
+`src/App.tsx` — `BrowserRouter`, two routes: `/` → `WelcomeScreen`, `/survey` → `SurveyScreen`. `ThankYouScreen` is **not** a route; it's rendered from inside `SurveyScreen` once the last question is passed. No other routes exist yet.
 
 ### `src/screens/WelcomeScreen.tsx` — static, no animation
 
@@ -85,6 +85,13 @@ State lives in `localStorage`, not Supabase — the anon key can write but never
 - `saveAnswer()` upserts into `answers` with `onConflict: 'respondent_id,question_id'`. A failed save sets `saveError`, which renders a "Check your connection" banner in an `aria-live="polite"` region.
 - Layout: outer `h-dvh overflow-hidden`; **only** the question area (`flex-1 overflow-y-auto px-5 pt-6`) scrolls. ProgressBar, save-error banner, validation message, ThemeToggle row, and the Back/Continue row all sit outside it, so a long list like Q2's 25-department picker never pushes Continue off-screen.
 - On mount it restores `<meta name="theme-color">` to light or dark cream based on the current `.dark` state.
+- **Completion (fixed 2026-10-03):** `hasCompleted = index >= visibleQuestions.length` triggers a one-shot `update({ completed_at })` on the respondent row and renders `ThankYouScreen`. Before this, `completed_at` was never written, so an abandoned response at Q4 was indistinguishable from a finished one and completion rate could not be computed.
+- **Q53_54 writes to `contacts`, not `answers` (fixed 2026-10-03):** `saveAnswer` special-cases `CONTACT_QUESTION_ID` so the phone number never lands in the general answers table — that's the whole point of `contacts` being separate (purge consent data without touching real responses). Writes are debounced 600ms because the field saves on every keystroke, and the unmount cleanup **flushes** any pending write rather than cancelling it, so closing the tab inside the debounce window can't silently drop a consented number. Clearing the field deletes the row.
+- ⚠️ **This depends on `supabase-contacts-patch.sql` having been run.** The schema originally had no unique index on `contacts(respondent_id)` and no anon UPDATE/DELETE policy, so the upsert and the delete would have silently affected zero rows (RLS blocks unmatched operations *without* raising an error — the write looks like it saved and didn't). The patch adds all three.
+
+### `src/screens/ThankYouScreen.tsx`
+
+Reached when the respondent advances past the last visible question. Centred `max-w-md`, three overlapping colour balls echoing the Welcome screen, and the same full-screen conventions every other route uses (`h-dvh overflow-hidden`, safe-area padding, `setThemeColor()`).
 
 ### Question components
 
@@ -170,29 +177,26 @@ Ordered by severity. "Confirmed" means observed in this app; "Suspected" means r
 
 ### Data integrity
 
-1. **`completed_at` is never written.** The `respondents` table has the column and nothing ever sets it, so an abandoned response at question 4 is indistinguishable from a finished one. This matters for Phase 4 (admin) and Phase 7 (analysis) — you cannot compute a completion rate until it's fixed. *Confirmed by reading `SurveyScreen.tsx`; no code path touches it.*
-2. **Q53_54's phone number is written to `answers`, not `contacts`.** `SurveyScreen` treats every question identically and upserts into `answers`, so the `contacts` table — which exists in the schema *specifically* so consent-bearing phone numbers are separable and purgeable — is never written. A consented phone number therefore sits in the general answers table where a retention purge would miss it. This is a consent/privacy bug, not a cosmetic one. *Confirmed by reading the save path.*
-3. **No deduplication.** A respondent who clears localStorage mid-survey and returns creates a second `respondents` row. There's no device or session identifier to collapse them. *Suspected.*
+1. **No deduplication.** A respondent who clears localStorage mid-survey and returns creates a second `respondents` row. There's no device or session identifier to collapse them. *Suspected.*
 
 ### Behaviour
 
-4. **Changing an answer can desync the question index.** `index` is a raw integer into `visibleQuestions`, which is recomputed from `answers` on every change. If a respondent goes Back to Q21 and switches "Never" → "Sometimes", Q23 is un-gated and inserted *before* their current position, so `visibleQuestions[index]` now resolves to a different question and they effectively skip one without being told. *Suspected — reasoned from the `showIf` filter, not reproduced in a browser.*
-5. **The mic button silently does nothing on browsers without Web Speech support** — most notably iOS Safari. The guard returns early instead of rendering a broken-looking control, but the button is still *shown*. For a study app where Q9/Q10/Q36/Q49/Q52 are all required typed answers, that's a meaningful fraction of the target audience. *Confirmed by reading the guard; the iOS support gap is external knowledge, not tested here.*
-6. **`isAnswerValid` checks `minPicks` but never `maxPicks`.** `MultiSelect` enforces the cap in the UI, so it can't be exceeded by clicking — but restored or hand-edited localStorage could carry an over-limit value through. *Confirmed, low impact.*
+2. **Changing an answer can desync the question index.** `index` is a raw integer into `visibleQuestions`, which is recomputed from `answers` on every change. If a respondent goes Back to Q21 and switches "Never" → "Sometimes", Q23 is un-gated and inserted *before* their current position, so `visibleQuestions[index]` now resolves to a different question and they effectively skip one without being told. *Suspected — reasoned from the `showIf` filter, not reproduced in a browser.*
+3. **The mic button silently does nothing on browsers without Web Speech support** — most notably iOS Safari. The guard returns early instead of rendering a broken-looking control, but the button is still *shown*. For a study app where Q9/Q10/Q36/Q49/Q52 are all required typed answers, that's a meaningful fraction of the target audience. *Confirmed by reading the guard; the iOS support gap is external knowledge, not tested here.*
+4. **`isAnswerValid` checks `minPicks` but never `maxPicks`.** `MultiSelect` enforces the cap in the UI, so it can't be exceeded by clicking — but restored or hand-edited localStorage could carry an over-limit value through. *Confirmed, low impact.*
 
 ### Robustness / hygiene
 
-7. **`localStorage` reads are unguarded.** `JSON.parse(localStorage.getItem('ski_answers'))` throws on malformed JSON and takes the whole screen down with it — a corrupted key means a white screen with no way back except manually clearing storage. *Confirmed by reading the `useState` initialisers.*
-8. **The `INSERT … RETURNING` + RLS trap (fixed, but still live).** `.insert().select()` throws `42501` on this schema even when everything is configured correctly, because `RETURNING` requires the row to pass a `SELECT` policy and anon has none. It cost hours once and looks identical to a genuine misconfiguration. *Fixed — client-side UUIDs in `SurveyScreen.tsx`. Keep rule 8 above alive so it doesn't get reintroduced.*
-9. **`src/App.css`, `src/assets/hero.png`, `react.svg`, `vite.svg` are unreferenced Vite scaffolding.** `main.tsx` imports only `index.css`; nothing imports `App.css` and nothing references the assets. Safe to delete. *Confirmed by grep.*
-10. **`README.md` is still the Vite template default** and will mislead anyone — including a new Claude instance — about what this project is.
-11. **Test debris in the project root:** `final-check.png` and a `.playwright-cli/` directory (console logs and page YAML snapshots). Neither is gitignored. *Confirmed on disk.*
-12. **The project is not under version control.** `SKI SURVEY/` is not a git repository at all — a `.gitignore` exists but nothing is tracked. Every change so far exists in exactly one place. See `context.md` for why this is the single most urgent item.
+5. **`localStorage` reads are unguarded.** `JSON.parse(localStorage.getItem('ski_answers'))` throws on malformed JSON and takes the whole screen down with it — a corrupted key means a white screen with no way back except manually clearing storage. *Confirmed by reading the `useState` initialisers.*
+6. **The `INSERT … RETURNING` + RLS trap (fixed, but still live).** `.insert().select()` throws `42501` on this schema even when everything is configured correctly, because `RETURNING` requires the row to pass a `SELECT` policy and anon has none. It cost hours once and looks identical to a genuine misconfiguration. *Fixed — client-side UUIDs in `SurveyScreen.tsx`. Keep rule 8 above alive so it doesn't get reintroduced.*
+7. **`src/App.css`, `src/assets/hero.png`, `react.svg`, `vite.svg` are unreferenced Vite scaffolding.** `main.tsx` imports only `index.css`; nothing imports `App.css` and nothing references the assets. Safe to delete. *Confirmed by grep.*
+8. **`README.md` is still the Vite template default** and will mislead anyone — including a new Claude instance — about what this project is.
+9. **The project is now in git** (initial commit 2026-10-03), but was not for its entire life beforehand. If a clone is ever made, `.env.local` will not come with it — recreate it from Supabase → Project Settings → API.
 
 ### Unverified — cannot be tested in this environment
 
-13. **The iOS notch/overscroll fix has never been checked on a real iPhone.** Every fix was written and reasoned about; verification was via headless Chrome screenshots, which don't reproduce the notch or the rubber-band bounce. The original symptom was reported on an iPhone 11 Pro and hasn't been confirmed fixed. *Unverified.*
-14. **Dictation has never been tested on real hardware.** The unmount leak was diagnosed from a behaviour report and fixed by inspection; the Web Speech API path itself has only ever run in desktop Chromium.
+10. **The iOS notch/overscroll fix has never been checked on a real iPhone.** Every fix was written and reasoned about; verification was via headless Chrome screenshots, which don't reproduce the notch or the rubber-band bounce. The original symptom was reported on an iPhone 11 Pro and hasn't been confirmed fixed. *Unverified.*
+11. **Dictation has never been tested on real hardware.** The unmount leak was diagnosed from a behaviour report and fixed by inspection; the Web Speech API path itself has only ever run in desktop Chromium.
 
 ## Continuing development
 
