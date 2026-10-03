@@ -1,0 +1,377 @@
+{
+  "sections": [
+    { "id": "about_you", "label": "About you" },
+    { "id": "how_you_study", "label": "How you study" },
+    { "id": "understanding", "label": "Understanding" },
+    { "id": "youtube_ai", "label": "YouTube and AI" },
+    { "id": "exams", "label": "Exams" },
+    { "id": "one_thing", "label": "One thing" },
+    { "id": "what_you_use_now", "label": "What you use now" },
+    { "id": "ski_idea", "label": "The SKI idea" },
+    { "id": "paying", "label": "Paying" },
+    { "id": "follow_up", "label": "Follow-up" }
+  ],
+  "questions": [
+    {
+      "id": "Q1",
+      "section": "about_you",
+      "type": "tap",
+      "required": true,
+      "prompt": "What level are you in?",
+      "options": ["100 Level", "200 Level", "300 Level", "400 Level", "500 Level+", "Postgraduate", "Other"]
+    },
+    {
+      "id": "Q2",
+      "section": "about_you",
+      "type": "tap",
+      "required": true,
+      "prompt": "What department are you in?",
+      "options": [
+        "Accounting",
+        "Agriculture",
+        "Architecture",
+        "Banking and Finance",
+        "Biochemistry",
+        "Biology / Microbiology",
+        "Business Administration",
+        "Chemical Engineering",
+        "Chemistry",
+        "Civil Engineering",
+        "Computer Science",
+        "Economics",
+        "Electrical / Electronic Engineering",
+        "English",
+        "Law",
+        "Mass Communication",
+        "Mathematics / Statistics",
+        "Mechanical Engineering",
+        "Medicine and Surgery (MBBS)",
+        "Nursing Science",
+        "Pharmacy",
+        "Physics",
+        "Political Science",
+        "Psychology",
+        "Sociology",
+        "Other"
+      ]
+    },
+    {
+      "id": "Q5",
+      "section": "about_you",
+      "type": "tap",
+      "required": true,
+      "prompt": "How would you describe your academic performance?",
+      "options": [
+        "First Class",
+        "Second Class Upper",
+        "Second Class Lower",
+        "Third Class",
+        "Pass",
+        "Not sure yet / no results yet"
+      ]
+    },
+    {
+      "id": "Q9",
+      "section": "how_you_study",
+      "type": "text",
+      "required": true,
+      "prompt": "Think about the last time you met a topic you didn't understand. What was it, and what did you do?",
+      "mic": true,
+      "promptChips": ["Which course was it?", "What did you try first?", "Who or what helped?"]
+    },
+    {
+      "id": "Q10",
+      "section": "how_you_study",
+      "type": "text",
+      "required": true,
+      "prompt": "What eventually helped you understand it?",
+      "mic": true
+    },
+    {
+      "id": "Q12",
+      "section": "how_you_study",
+      "type": "multiSelect",
+      "required": true,
+      "prompt": "When you don't understand a topic, what do you usually do?",
+      "options": [
+        "Ask the lecturer after class",
+        "Ask a coursemate or senior",
+        "Go for a private tutorial or lesson",
+        "Re-read the course manual or textbook",
+        "Search for an explanation online (YouTube, Google)",
+        "Ask an AI tool like ChatGPT",
+        "Just keep going and hope it makes sense later",
+        "Other"
+      ],
+      "minPicks": 1,
+      "maxPicks": 3
+    },
+    {
+      "id": "Q13",
+      "section": "how_you_study",
+      "type": "tap",
+      "required": true,
+      "prompt": "What's the very first thing you try when you're stuck on something?",
+      "options": [
+        "Go to a private tutorial or lesson",
+        "Re-read my course manual or notes",
+        "Ask a coursemate or senior",
+        "Search online",
+        "Ask an AI tool",
+        "Other"
+      ]
+    },
+    {
+      "id": "Q15",
+      "section": "understanding",
+      "type": "multiSelect",
+      "required": true,
+      "prompt": "How do you usually check whether you've actually understood a topic?",
+      "options": [
+        "I try to explain it to someone else",
+        "I attempt past questions on it",
+        "I see if I can solve a new problem without help",
+        "I just feel like I understand it",
+        "I don't usually check",
+        "Other"
+      ],
+      "minPicks": 1,
+      "maxPicks": 3
+    },
+    {
+      "id": "Q16",
+      "section": "understanding",
+      "type": "text",
+      "required": false,
+      "prompt": "Tell us about a time you thought you understood something, but realized later (e.g. in an exam) that you didn't.",
+      "mic": true
+    },
+    {
+      "id": "Q20",
+      "section": "understanding",
+      "type": "text",
+      "required": true,
+      "prompt": "How do you know whether you actually understand something?",
+      "mic": true
+    },
+    {
+      "id": "Q21",
+      "section": "youtube_ai",
+      "type": "tap",
+      "required": true,
+      "prompt": "How often do you use YouTube for studying?",
+      "options": ["Never", "Rarely", "Sometimes", "Often", "Every time I study"]
+    },
+    {
+      "id": "Q23",
+      "section": "youtube_ai",
+      "type": "multiSelect",
+      "required": true,
+      "prompt": "What frustrates you about using YouTube for studying?",
+      "options": [
+        "Explanation isn't aligned with my course",
+        "Can't easily ask questions about the exact part I'm watching",
+        "No way to test myself",
+        "Can't find the exact topic",
+        "Videos are too long",
+        "Internet/data consumption",
+        "Too much irrelevant information",
+        "Difficult to know what to watch next",
+        "Ads/distractions",
+        "Other"
+      ],
+      "minPicks": 1,
+      "maxPicks": 3,
+      "showIf": { "questionId": "Q21", "valueNotIn": ["Never"] }
+    },
+    {
+      "id": "Q24",
+      "section": "youtube_ai",
+      "type": "tap",
+      "required": true,
+      "prompt": "How often do you use AI tools such as ChatGPT for studying?",
+      "options": ["Never", "Rarely", "Sometimes", "Often", "Every time I study"]
+    },
+    {
+      "id": "Q26",
+      "section": "youtube_ai",
+      "type": "text",
+      "required": false,
+      "prompt": "What problems have you experienced when using AI for studying?",
+      "mic": true,
+      "showIf": { "questionId": "Q24", "valueNotIn": ["Never"] }
+    },
+    {
+      "id": "Q27",
+      "section": "youtube_ai",
+      "type": "text",
+      "required": false,
+      "prompt": "What do you wish AI could do better for students?",
+      "mic": true
+    },
+    {
+      "id": "Q32",
+      "section": "exams",
+      "type": "text",
+      "required": false,
+      "prompt": "Walk us through how you usually prepare in the final week before an exam.",
+      "mic": true
+    },
+    {
+      "id": "Q35",
+      "section": "exams",
+      "type": "multiSelect",
+      "required": true,
+      "prompt": "What are your biggest problems when preparing for exams?",
+      "options": [
+        "Not enough time",
+        "Too much material",
+        "Don't know what to prioritize",
+        "Don't understand some topics",
+        "Forgetting what I studied",
+        "Lack of practice questions",
+        "Poor study discipline",
+        "Anxiety/stress",
+        "Poor materials",
+        "Other"
+      ],
+      "minPicks": 1,
+      "maxPicks": 3
+    },
+    {
+      "id": "Q36",
+      "section": "one_thing",
+      "type": "text",
+      "required": true,
+      "prompt": "If you could fix one thing about how you study, a problem you'd solve or something you'd change, what would it be?",
+      "mic": true
+    },
+    {
+      "id": "Q40",
+      "section": "what_you_use_now",
+      "type": "text",
+      "required": false,
+      "prompt": "Do you currently use an app or platform to help you study? If so, which one?",
+      "placeholder": "Name of the app or platform",
+      "mic": false,
+      "allowNone": true,
+      "noneLabel": "None"
+    },
+    {
+      "id": "Q42",
+      "section": "what_you_use_now",
+      "type": "text",
+      "required": false,
+      "prompt": "What do you mainly use it for?",
+      "mic": true,
+      "showIf": { "questionId": "Q40", "valueNotIn": ["None"] }
+    },
+    {
+      "id": "Q43",
+      "section": "what_you_use_now",
+      "type": "text",
+      "required": true,
+      "prompt": "If you stopped using it tomorrow, what would you miss most?",
+      "mic": true,
+      "showIf": { "questionId": "Q40", "valueNotIn": ["None"] }
+    },
+    {
+      "id": "concept",
+      "section": "ski_idea",
+      "type": "concept",
+      "required": false,
+      "prompt": "One idea we want your honest take on.",
+      "body": [
+        "Learn from videos matched to your exact course and topic",
+        "Pause and ask a question about exactly what you just watched",
+        "Get tested on what you just learned, right after you learn it",
+        "Come back later and get quizzed on what you're starting to forget"
+      ]
+    },
+    {
+      "id": "Q45",
+      "section": "ski_idea",
+      "type": "multiSelect",
+      "required": true,
+      "prompt": "Which two of these would you use the most?",
+      "options": [
+        "Ask questions about the exact part of the video you're watching",
+        "Get quizzed partway through a video, not just at the end",
+        "Get tested again later on topics you're forgetting",
+        "A focus timer that quizzes you at the end of a session",
+        "Auto-generated flashcards and notes for each topic",
+        "A steady drip of past exam questions for your course",
+        "Study tips and sticky notes shared by others in your course",
+        "Lessons explained in your local language, not just English"
+      ],
+      "minPicks": 2,
+      "maxPicks": 2
+    },
+    {
+      "id": "Q45_why",
+      "section": "ski_idea",
+      "type": "text",
+      "required": true,
+      "prompt": "Why did you pick those two?",
+      "mic": true
+    },
+    {
+      "id": "Q45_missing",
+      "section": "ski_idea",
+      "type": "text",
+      "required": false,
+      "prompt": "What's one feature you wish was on that list?",
+      "mic": true
+    },
+    {
+      "id": "Q46",
+      "section": "ski_idea",
+      "type": "tap",
+      "required": true,
+      "prompt": "Which one of these feels the least useful to you?",
+      "options": [
+        "Ask questions about the exact part of the video you're watching",
+        "Get quizzed partway through a video, not just at the end",
+        "Get tested again later on topics you're forgetting",
+        "A focus timer that quizzes you at the end of a session",
+        "Auto-generated flashcards and notes for each topic",
+        "A steady drip of past exam questions for your course",
+        "Study tips and sticky notes shared by others in your course",
+        "Lessons explained in your local language, not just English"
+      ]
+    },
+    {
+      "id": "Q49",
+      "section": "ski_idea",
+      "type": "text",
+      "required": true,
+      "prompt": "What do you think this idea would get wrong, or where would it fall short for you?",
+      "mic": true
+    },
+    {
+      "id": "Q50",
+      "section": "paying",
+      "type": "tap",
+      "required": true,
+      "prompt": "Would you pay for something like this?",
+      "options": ["Yes, definitely", "Maybe, depends on price", "Probably not", "No"]
+    },
+    {
+      "id": "Q52",
+      "section": "paying",
+      "type": "text",
+      "required": true,
+      "prompt": "What would actually make you pay for something like this?",
+      "mic": true
+    },
+    {
+      "id": "Q53_54",
+      "section": "follow_up",
+      "type": "text",
+      "required": false,
+      "prompt": "Can we follow up with you about this? If so, leave a number we can reach you on.",
+      "placeholder": "Phone number",
+      "mic": false
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/* Enables the `dark:` variant via a `.dark` class on <html>, instead of only
+   following OS `prefers-color-scheme` — toggled by ThemeToggle.tsx. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* existing tokens — unchanged, still used by every screen except Welcome */
+  --color-brown: #4B2E2A;
+  --color-orange: #D16F2E;
+  --color-orange-dark: #A34E1A;
+  --color-amber: #F9A136;
+  --color-cream: #FEF3E0;
+
+  /* new — Welcome screen only, for now */
+  --color-sunset-red: #E6412A;
+  --color-sunset-orange: #F5891E;
+  --color-ivory: #FBF2CF;
+  --color-lime: #5C8A1F;
+  --color-ink: #3D1810;
+
+  --font-sans: "DM Sans", system-ui, sans-serif;
+}
+
+/* Set on html too, not just body: this is what shows through iOS Safari's
+   overscroll "rubber-band" bounce and some notch/status-bar rendering paths.
+   Without it, those areas fall through to html's default white regardless
+   of what body or any screen's own background is set to. */
+html {
+  background-color: var(--color-cream);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-cream);
+  color: var(--color-brown);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dark mode: swap the brown/cream token VALUES rather than retargeting
+   classes. Every normal screen (bg-cream/text-brown) inverts to the dark
+   look, and the Concept screen — the one screen already styled the other
+   way round (bg-brown/text-cream) — flips to the light look instead. */
+.dark {
+  color-scheme: dark;
+  --color-brown: #FEF3E0;
+  --color-cream: #4B2E2A;
+}
