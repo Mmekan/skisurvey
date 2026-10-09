@@ -75,9 +75,8 @@
       "section": "how_you_study",
       "type": "text",
       "required": true,
-      "prompt": "Think about the last time you met a topic you didn't understand. What was it, and what did you do?",
-      "mic": true,
-      "promptChips": ["Which course was it?", "What did you try first?", "Who or what helped?"]
+      "prompt": "Think about the last time you met a topic you didn't understand. What course was it, what did you try first, and who or what helped?",
+      "mic": true
     },
     {
       "id": "Q10",
@@ -86,6 +85,30 @@
       "required": true,
       "prompt": "What eventually helped you understand it?",
       "mic": true
+    },
+    {
+      "id": "Q12_why",
+      "section": "how_you_study",
+      "type": "multiSelect",
+      "required": true,
+      "prompt": "What usually makes a course or topic difficult for you?",
+      "options": [
+        "The lecturer's explanation",
+        "The material is too complicated",
+        "Not enough examples",
+        "Too much material",
+        "I don't know where to start",
+        "I can't visualize the concept",
+        "I need someone to explain it differently",
+        "I understand it initially but forget it",
+        "I lack practice questions",
+        "I get distracted",
+        "I don't have enough time",
+        "The material isn't engaging",
+        "Other"
+      ],
+      "minPicks": 1,
+      "maxPicks": 3
     },
     {
       "id": "Q12",
@@ -169,14 +192,14 @@
       "required": true,
       "prompt": "What frustrates you about using YouTube for studying?",
       "options": [
-        "Explanation isn't aligned with my course",
-        "Can't easily ask questions about the exact part I'm watching",
-        "No way to test myself",
         "Can't find the exact topic",
         "Videos are too long",
-        "Internet/data consumption",
         "Too much irrelevant information",
+        "Explanation isn't aligned with my course",
         "Difficult to know what to watch next",
+        "No way to test myself",
+        "Can't easily ask questions about the exact part I'm watching",
+        "Internet/data consumption",
         "Ads/distractions",
         "Other"
       ],
@@ -371,6 +394,7 @@
       "required": false,
       "prompt": "Can we follow up with you about this? If so, leave a number we can reach you on.",
       "placeholder": "Phone number",
+      "inputMode": "tel",
       "mic": false
     }
   ]

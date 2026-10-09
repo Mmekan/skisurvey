@@ -43,7 +43,7 @@ Installed globally (available to this user on every machine, but **not** carried
 
 ## Architecture conventions — do not violate these
 
-1. **`src/data/questions.json` is the single source of truth.** Adding or editing a question means editing this file only. Never hardcode a new screen component for a new question — there are only four question *types*, not 29 screens.
+1. **`src/data/questions.json` is the single source of truth.** Adding or editing a question means editing this file only. Never hardcode a new screen component for a new question — there are only four question *types*, not 30 screens.
 2. **Four question components, no more:** `TapQuestion`, `MultiSelect`, `TextQuestion`, `ConceptScreen` (the last is a one-off). Plus `ProgressBar` and `ThemeToggle`, which aren't question types. New questions are data in `questions.json`, never new components.
 3. **Supabase is answer-per-row, never a wide table.** `respondents` (session metadata) + `answers` (one row per question) + `contacts` (Q53_54 phone numbers only, separated for consent/retention reasons).
 4. **RLS: the anon key can INSERT and UPDATE, never SELECT.** If you touch RLS policies, re-run the fake-insert test (`PROJECT_BIBLE.md` §12) before trusting it again. Admin reads go through `service_role` from a server function only.
@@ -175,28 +175,37 @@ v4 removed the CLI from the main `tailwindcss` package, so `npx tailwindcss init
 
 Ordered by severity. "Confirmed" means observed in this app; "Suspected" means reasoned from the code but not reproduced. **Do not treat this list as a work backlog without confirming with the user first** — several items are deliberate trade-offs, not defects.
 
-### Data integrity
+### Open
 
-1. **No deduplication.** A respondent who clears localStorage mid-survey and returns creates a second `respondents` row. There's no device or session identifier to collapse them. *Suspected.*
+1. **The mic button silently does nothing on browsers without Web Speech support.** The guard returns early instead of rendering a broken-looking control, but the button is still *shown*. For a study app where Q9/Q10/Q36/Q49/Q52 are all required typed answers, that's a meaningful fraction of the target audience. *New evidence 2026-10-07: the MicIntro popup DID appear on the user's iPhone (so `webkitSpeechRecognition` exists there — the old "iOS Safari has no support" premise is wrong for their iOS version), and the button became inert only after granting mic permission. Leading hypothesis: Web Speech's recognition service requires a secure context, and the survey was reached via a port-forwarded non-localhost origin, so recognition starts and never yields. Verify over https before the pilot. Fix if it persists on https: `{question.mic && speechSupported() && ...}` plus dropping the `pr-14` textarea padding when there's no mic.*
 
-### Behaviour
+2. **`supabase-update-policies-patch.sql` has not been run yet.** `anon update respondent` and `anon update answer` were specified in PROJECT_BIBLE §12 but never verified in the live database — probed 2026-10-07 and both are absent (zero-row updates). Until the patch runs: re-answering a question hits the update leg and silently affects zero rows (RLS blocks unmatched operations without raising an error), and `completed_at` never writes, so every respondent shows null and Phase 7 completion-rate analysis stays blocked. The INSERT policies are fine (verified), `contacts` is fine (patched 2026-10-06).
 
-2. **Changing an answer can desync the question index.** `index` is a raw integer into `visibleQuestions`, which is recomputed from `answers` on every change. If a respondent goes Back to Q21 and switches "Never" → "Sometimes", Q23 is un-gated and inserted *before* their current position, so `visibleQuestions[index]` now resolves to a different question and they effectively skip one without being told. *Suspected — reasoned from the `showIf` filter, not reproduced in a browser.*
-3. **The mic button silently does nothing on browsers without Web Speech support** — most notably iOS Safari. The guard returns early instead of rendering a broken-looking control, but the button is still *shown*. For a study app where Q9/Q10/Q36/Q49/Q52 are all required typed answers, that's a meaningful fraction of the target audience. *Confirmed by reading the guard; the iOS support gap is external knowledge, not tested here.*
-4. **`isAnswerValid` checks `minPicks` but never `maxPicks`.** `MultiSelect` enforces the cap in the UI, so it can't be exceeded by clicking — but restored or hand-edited localStorage could carry an over-limit value through. *Confirmed, low impact.*
+3. **StrictMode double-inserts a respondent row in dev.** The respondent-creation `useEffect` guards on `respondentId`, which has not updated yet when React re-invokes it, so a second `crypto.randomUUID()` insert fires ~9ms after the first. Two rows land in `respondents`; the second overwrites `ski_respondent_id`, leaving an orphaned empty row. *Confirmed 2026-10-06 from duplicate 400s in the console. Dev-only — StrictMode does not double-invoke in a production build — and both rows carry `is_test: true`, so they are purgeable. Pre-existing, not introduced by any recent change.*
 
-### Robustness / hygiene
+### Fixed 2026-10-07
 
-5. **`localStorage` reads are unguarded.** `JSON.parse(localStorage.getItem('ski_answers'))` throws on malformed JSON and takes the whole screen down with it — a corrupted key means a white screen with no way back except manually clearing storage. *Confirmed by reading the `useState` initialisers.*
-6. **The `INSERT … RETURNING` + RLS trap (fixed, but still live).** `.insert().select()` throws `42501` on this schema even when everything is configured correctly, because `RETURNING` requires the row to pass a `SELECT` policy and anon has none. It cost hours once and looks identical to a genuine misconfiguration. *Fixed — client-side UUIDs in `SurveyScreen.tsx`. Keep rule 8 above alive so it doesn't get reintroduced.*
-7. **`src/App.css`, `src/assets/hero.png`, `react.svg`, `vite.svg` are unreferenced Vite scaffolding.** `main.tsx` imports only `index.css`; nothing imports `App.css` and nothing references the assets. Safe to delete. *Confirmed by grep.*
-8. **`README.md` is still the Vite template default** and will mislead anyone — including a new Claude instance — about what this project is.
-9. **The project is now in git** (initial commit 2026-10-03), but was not for its entire life beforehand. If a clone is ever made, `.env.local` will not come with it — recreate it from Supabase → Project Settings → API.
+- **Autosave never reached Supabase — every answer save failed 42501.** supabase-js `.upsert()` sends `Prefer: resolution=merge-duplicates`, which forces a `RETURNING` check against a SELECT policy anon deliberately doesn't have; probed on all three tables (even `contacts`, which has every write policy) and every variant fails, including DO-NOTHING. The "Check your connection" banner was the visible tip — behind it, no answers had ever landed in the `answers` table. Replaced with insert-then-update (unique violation `23505` falls back to a PATCH), with an existence cache so steady-state typing stays one round trip. Same fix applied to `saveContact`. *Verified in a browser: fresh insert → 201; re-answer → straight PATCH 204; after reload → 409 caught → PATCH 204; banner absent in all three. Persistence of updates takes effect once the update-policies patch above is run.*
+- **Phone field accepted letters.** Q53_54 now carries `inputMode: tel` (numeric keypad) and filters to phone characters on input. *Verified: "call me: 0803 ABC 4567!" becomes "  0803  4567".*
 
-### Unverified — cannot be tested in this environment
+### Fixed 2026-10-06
 
-10. **The iOS notch/overscroll fix has never been checked on a real iPhone.** Every fix was written and reasoned about; verification was via headless Chrome screenshots, which don't reproduce the notch or the rubber-band bounce. The original symptom was reported on an iPhone 11 Pro and hasn't been confirmed fixed. *Unverified.*
-11. **Dictation has never been tested on real hardware.** The unmount leak was diagnosed from a behaviour report and fixed by inspection; the Web Speech API path itself has only ever run in desktop Chromium.
+Each verified in a browser at 375x812 after the fix.
+
+- **Unguarded `localStorage` reads white-screened `/survey`.** Previously reproduced: a malformed `ski_answers` value left an empty body with no recovery, which is a lost response during fielding. All reads and writes now go through `readKey`/`readJson`/`writeKey`. *Verified: corrupt `ski_answers` plus a non-numeric `ski_question_index` now render normally.*
+- **Question index desync.** `index` was a raw integer into a re-filtered array, so changing a gating answer could silently move the respondent to a different question. The current question is now tracked by **id** (`ski_question_id`); the integer is kept only as a fallback for saves made before this existed. *Verified: with `currentId=Q36` and a stale `storedIndex=5` it renders Q36; un-gating Q23 while positioned on Q24 leaves the respondent on Q24 and re-syncs the index 12 to 13.*
+- **`isAnswerValid` never checked `maxPicks`.** Now enforces the upper bound with a specific message. *Verified: 5 picks on a max-3 question disables Continue and reads "Remove 2 to continue - up to 3 allowed."*
+- **No deduplication.** Added `respondents.device_id`, a stable anonymous UUID under the localStorage key `ski_device_id` that survives a cleared survey store. *Requires `supabase-device-id-patch.sql`; the client retries the insert without the column if that has not been run, so deploy ordering is not fatal.*
+- **Dead Vite scaffolding deleted.** `src/App.css` and `src/assets/{hero.png,react.svg,vite.svg}`; `src/assets/` is now empty.
+
+### Previously fixed - keep these alive
+
+- **The INSERT ... RETURNING + RLS trap.** `.insert().select()` throws `42501` on this schema even when everything is configured correctly, because `RETURNING` requires the new row to pass a `SELECT` policy and anon deliberately has none. It cost hours once and looks identical to a genuine misconfiguration. *Fixed - client-side UUIDs. Keep rule 8 above alive so it is not reintroduced.*
+
+### Unverified - cannot be tested in this environment
+
+3. **The iOS notch/overscroll fix has never been checked on a real iPhone.** Every fix was written and reasoned about; verification was via headless Chrome screenshots, which do not reproduce the notch or the rubber-band bounce. The original symptom was reported on an iPhone 11 Pro and has not been confirmed fixed. *Unverified.*
+4. **Dictation has never been tested on real hardware.** The unmount leak was diagnosed from a behaviour report and fixed by inspection; the Web Speech API path itself has only ever run in desktop Chromium.
 
 ## Continuing development
 

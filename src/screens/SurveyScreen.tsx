@@ -3,12 +3,15 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import schema from '../data/questions.json'
 import type { Question, SurveySchema } from '../types/question'
 import { supabase } from '../lib/supabase'
+import { saveAnswer as rpcSaveAnswer, saveContact as rpcSaveContact, markCompleted } from '../lib/save'
 import TapQuestion from '../components/questions/TapQuestion'
 import MultiSelect from '../components/questions/MultiSelect'
 import TextQuestion from '../components/questions/TextQuestion'
 import ConceptScreen from '../components/questions/ConceptScreen'
 import ProgressBar from '../components/ProgressBar'
-import ThemeToggle from '../components/ThemeToggle'
+// import ThemeToggle from '../components/ThemeToggle' // hidden for now — the
+// switch took a row of its own above Continue and cramped the question area on
+// a 375px screen. Dark mode itself still works; only the control is hidden.
 import ThankYouScreen from './ThankYouScreen'
 import { CREAM_DARK, CREAM_LIGHT, setThemeColor } from '../lib/theme'
 
@@ -23,6 +26,61 @@ type Answers = Record<string, AnswerValue>
 const RESPONDENT_KEY = 'ski_respondent_id'
 const ANSWERS_KEY = 'ski_answers'
 const INDEX_KEY = 'ski_question_index'
+// The current question is tracked by id, not by array position. Position
+// shifts the moment a showIf gate opens or closes, so a bare index silently
+// moves the respondent to a *different* question (bug 2). The id is the
+// identity; INDEX_KEY is only a fallback for saves made before this existed.
+const QUESTION_ID_KEY = 'ski_question_id'
+// Survives a cleared survey (unlike RESPONDENT_KEY) so a respondent who wipes
+// localStorage mid-survey can be collapsed back into one row at analysis time
+// instead of counting as two people (bug 1).
+const DEVICE_KEY = 'ski_device_id'
+
+// Every localStorage read goes through here. A single malformed key used to
+// white-screen /survey with no recovery — during fielding that is a lost
+// response, not a cosmetic bug (bug 5).
+function readKey(key: string): string | null {
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function readJson<T>(key: string, fallback: T): T {
+  try {
+    const saved = localStorage.getItem(key)
+    return saved ? (JSON.parse(saved) as T) : fallback
+  } catch {
+    return fallback
+  }
+}
+
+function getDeviceId(): string | null {
+  try {
+    const existing = localStorage.getItem(DEVICE_KEY)
+    if (existing) return existing
+    const fresh = crypto.randomUUID()
+    localStorage.setItem(DEVICE_KEY, fresh)
+    return fresh
+  } catch {
+    return null
+  }
+}
+
+// Writes go through here for the same reason reads do: a full or blocked
+// localStorage would otherwise throw out of a passive effect. A null value
+// clears the key — clearing is load-bearing, not incidental: a stale
+// question id left behind after the survey completes would resume a finished
+// respondent at a question instead of the thank-you screen.
+function writeKey(key: string, value: string | null) {
+  try {
+    if (value === null) localStorage.removeItem(key)
+    else localStorage.setItem(key, value)
+  } catch {
+    /* non-fatal — resume degrades, the survey keeps running */
+  }
+}
 
 // Q53_54 is the only question that writes to `contacts` instead of
 // `answers` — it's the consent-bearing phone number, and the table is
@@ -44,7 +102,10 @@ function isAnswerValid(q: Question, value: AnswerValue | undefined): boolean {
   if (q.type === 'concept') return true
   if (q.type === 'multiSelect') {
     const arr = (value as string[] | undefined) ?? []
-    return arr.length >= q.minPicks
+    // The UI can't exceed maxPicks, but restored or hand-edited localStorage
+    // can — and the answer is what reaches Supabase, so validate the value
+    // rather than trusting the control that produced it.
+    return arr.length >= q.minPicks && arr.length <= q.maxPicks
   }
   return typeof value === 'string' && value.trim().length > 0
 }
@@ -53,6 +114,9 @@ function getValidationMessage(q: Question, value: AnswerValue | undefined): stri
   if (isAnswerValid(q, value)) return null
   if (q.type === 'multiSelect') {
     const picked = (value as string[] | undefined)?.length ?? 0
+    if (picked > q.maxPicks) {
+      return `Remove ${picked - q.maxPicks} to continue — up to ${q.maxPicks} allowed.`
+    }
     const remaining = q.minPicks - picked
     return `Pick ${remaining} more to continue.`
   }
@@ -68,17 +132,13 @@ export default function SurveyScreen() {
     setThemeColor(isDark ? CREAM_DARK : CREAM_LIGHT)
   }, [])
 
-  const [answers, setAnswers] = useState<Answers>(() => {
-    const saved = localStorage.getItem(ANSWERS_KEY)
-    return saved ? JSON.parse(saved) : {}
+  const [answers, setAnswers] = useState<Answers>(() => readJson<Answers>(ANSWERS_KEY, {}))
+  const [storedIndex, setStoredIndex] = useState<number>(() => {
+    const n = Number(readKey(INDEX_KEY))
+    return Number.isFinite(n) && n > 0 ? n : 0
   })
-  const [index, setIndex] = useState<number>(() => {
-    const saved = localStorage.getItem(INDEX_KEY)
-    return saved ? Number(saved) : 0
-  })
-  const [respondentId, setRespondentId] = useState<string | null>(() =>
-    localStorage.getItem(RESPONDENT_KEY)
-  )
+  const [currentId, setCurrentId] = useState<string | null>(() => readKey(QUESTION_ID_KEY))
+  const [respondentId, setRespondentId] = useState<string | null>(() => readKey(RESPONDENT_KEY))
   const [saveError, setSaveError] = useState(false)
 
   // Create the respondent row once, on first load only.
@@ -93,27 +153,54 @@ export default function SurveyScreen() {
     if (respondentId) return
     const id = crypto.randomUUID()
     const params = new URLSearchParams(window.location.search)
-    supabase
-      .from('respondents')
-      .insert({
-        id,
-        source: params.get('src') ?? null,
-        is_test: import.meta.env.DEV, // auto-flags dev-server runs; flip manually for pilot data
-      })
-      .then(({ error }) => {
-        if (error) {
-          console.error('Could not create respondent row:', error)
-          return
-        }
-        setRespondentId(id)
-        localStorage.setItem(RESPONDENT_KEY, id)
-      })
+    const device_id = getDeviceId()
+    const base = {
+      id,
+      source: params.get('src') ?? null,
+      is_test: import.meta.env.DEV, // auto-flags dev-server runs; flip manually for pilot data
+    }
+
+    void (async () => {
+      let { error } = await supabase
+        .from('respondents')
+        .insert({ ...base, ...(device_id ? { device_id } : {}) })
+
+      // device_id only exists if supabase-device-id-patch.sql has been run.
+      // If it hasn't, the insert fails outright — and a failed respondent
+      // insert is silent, because every later save bails on a missing
+      // respondentId. Retry without the column so schema/client ordering can
+      // never cost a response.
+      if (error && device_id) {
+        ;({ error } = await supabase.from('respondents').insert(base))
+      }
+
+      if (error) {
+        console.error('Could not create respondent row:', error)
+        return
+      }
+      setRespondentId(id)
+      writeKey(RESPONDENT_KEY, id)
+    })()
   }, [respondentId])
 
   const visibleQuestions = useMemo(
     () => questions.filter((q) => isQuestionVisible(q, answers)),
     [answers]
   )
+
+  // Resolve position from identity: find the question we're actually on,
+  // rather than trusting a number that may now point somewhere else.
+  const index = useMemo(() => {
+    if (currentId) {
+      const i = visibleQuestions.findIndex((q) => q.id === currentId)
+      if (i !== -1) return i
+      // The question we were on is now gated away by an answer change. Fall
+      // back to the recorded position, clamped so it can never run off the
+      // end of the list.
+      return Math.min(storedIndex, Math.max(visibleQuestions.length - 1, 0))
+    }
+    return Math.min(storedIndex, visibleQuestions.length)
+  }, [visibleQuestions, currentId, storedIndex])
 
   const current = visibleQuestions[index]
 
@@ -125,52 +212,36 @@ export default function SurveyScreen() {
 
   useEffect(() => {
     if (!hasCompleted || !respondentId) return
-    supabase
-      .from('respondents')
-      .update({ completed_at: new Date().toISOString() })
-      .eq('id', respondentId)
-      .then(({ error }) => {
-        if (error) console.error('Could not mark respondent complete:', error)
-      })
+    void markCompleted(respondentId)
   }, [hasCompleted, respondentId])
 
   useEffect(() => {
-    localStorage.setItem(ANSWERS_KEY, JSON.stringify(answers))
+    writeKey(ANSWERS_KEY, JSON.stringify(answers))
   }, [answers])
 
+  // Persist the question *id* alongside the position. The id is what restores
+  // correctly when branching has changed the shape of the list since the
+  // respondent last looked; the index is only a fallback for legacy saves.
   useEffect(() => {
-    localStorage.setItem(INDEX_KEY, String(index))
-  }, [index])
+    writeKey(INDEX_KEY, String(index))
+    writeKey(QUESTION_ID_KEY, currentId)
+  }, [index, currentId])
 
   // Phone-number writes are debounced because this field saves on every
   // keystroke, and each one is a delete plus an insert — unthrottled, a
   // slow connection produces a burst of requests and the last keystroke
   // isn't guaranteed to be the last write to land.
-  const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingContact = useRef<string | null>(null)
 
   const saveContact = useCallback(async (id: string, phone: string) => {
-    // Clearing the field must actually remove the row, not just skip an
-    // insert — a stale number left behind after someone deletes it is a
-    // consent/privacy problem, not a cosmetic one.
-    if (!phone.trim()) {
-      const { error: deleteError } = await supabase
-        .from('contacts')
-        .delete()
-        .eq('respondent_id', id)
-      if (deleteError) console.error('Could not clear contact:', deleteError)
-      return
-    }
-
-    const { error } = await supabase
-      .from('contacts')
-      .upsert(
-        { respondent_id: id, phone },
-        { onConflict: 'respondent_id' }
-      )
-
+    // Clearing the field must actually remove the row — a stale number left
+    // behind after someone deletes it is a consent/privacy problem, not a
+    // cosmetic one. Anon's DELETE matched zero rows, so that guarantee only
+    // exists now that the write runs as the table owner via the RPC.
+    const error = await rpcSaveContact(id, phone)
     if (error) {
-      console.error('Autosave failed for contact:', error)
+      console.error('Autosave failed for contact:', error.message)
       setSaveError(true)
     } else {
       setSaveError(false)
@@ -206,14 +277,9 @@ export default function SurveyScreen() {
         return
       }
 
-      const { error } = await supabase
-        .from('answers')
-        .upsert(
-          { respondent_id: respondentId, question_id: questionId, value },
-          { onConflict: 'respondent_id,question_id' }
-        )
+      const error = await rpcSaveAnswer(respondentId, questionId, value)
       if (error) {
-        console.error('Autosave failed for', questionId, error)
+        console.error('Autosave failed for', questionId, error.message)
         setSaveError(true)
       } else {
         setSaveError(false)
@@ -222,8 +288,15 @@ export default function SurveyScreen() {
     [respondentId, saveContact]
   )
 
-  const goNext = () => setIndex((i) => Math.min(i + 1, visibleQuestions.length))
-  const goBack = () => setIndex((i) => Math.max(i - 1, 0))
+  const moveTo = (next: number) => {
+    const clamped = Math.max(0, Math.min(next, visibleQuestions.length))
+    setStoredIndex(clamped)
+    // Past the end this is null — which is what marks the survey complete.
+    setCurrentId(visibleQuestions[clamped]?.id ?? null)
+  }
+
+  const goNext = () => moveTo(index + 1)
+  const goBack = () => moveTo(index - 1)
 
   if (hasCompleted) {
     return <ThankYouScreen />
@@ -243,7 +316,11 @@ export default function SurveyScreen() {
             </p>
           )}
         </div>
-        <div className="flex-1 overflow-y-auto px-5 pt-6">
+        {/* overflow-x-hidden: ConceptScreen bleeds full-width with -mx-5, which
+          makes its content wider than this padded column — without the clip,
+          the scroll area accepts horizontal drags and the concept block slides
+          side to side. The bleed itself still renders edge to edge. */}
+        <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden px-5 pt-6">
           {current.type === 'tap' && (
             <TapQuestion
               question={current}
@@ -270,10 +347,10 @@ export default function SurveyScreen() {
         {validationMessage && (
           <p className="mx-5 mb-1 text-sm font-semibold text-orange-dark">{validationMessage}</p>
         )}
-        <div className="flex justify-start px-5 pt-2">
+        {/* <div className="flex justify-start px-5 pt-2">
           <ThemeToggle />
-        </div>
-        <div className="flex gap-3 px-5 py-6">
+        </div> */}
+        <div className="flex gap-3 px-5 pt-4 pb-6">
           {index > 0 && (
             <button
               type="button"

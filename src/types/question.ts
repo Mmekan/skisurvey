@@ -39,6 +39,7 @@ export interface TextQuestion extends BaseQuestion {
   promptChips?: string[];   // optional tap-to-insert helper chips, as in the mockup
   allowNone?: boolean;      // Q40 only — shows a "None" button that sets the answer to noneLabel
   noneLabel?: string;
+  inputMode?: "tel";        // numeric keypad + input filtered to phone characters
 }
 
 export interface ConceptQuestion extends BaseQuestion {

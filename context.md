@@ -10,7 +10,7 @@
 
 ## Read this first — the three things that matter most
 
-1. **The survey's wording is partly invented.** All 15 `TODO` placeholders in `questions.json` were filled with drafted content because the original 54-question source document was not available in that session. The survey is end-to-end testable, but the wording is **not** verbatim from the real instrument. It must be cross-checked before the survey is fielded with real respondents, or the data will not mean what it appears to mean.
+1. **The survey's wording is partly invented — but the source document has now been found.** All 15 `TODO` placeholders in `questions.json` were filled with drafted content on 2026-10-02 because the original 54-question source was unavailable in that session. `SKI_54_Student_Research_Questions.pdf` appeared on 2026-10-05 (created *after* this file, so it is the newest artefact in the repo). **The two research-integrity problems were fixed on 2026-10-06 — see "Source-document cross-check" below.** The remaining wording divergences are still open and must be resolved before fielding.
 2. **A Supabase schema patch is waiting to be run.** `supabase-contacts-patch.sql` adds a unique index and two RLS policies that the phone-number fix depends on. Until it's applied in the SQL Editor, Q53_54 writes fail *silently*. See "Fixes applied during handoff" below.
 3. **This is a research instrument, not a product.** The thesis is what matters. Phases 0–3 built the instrument; the survey existing and looking good is not evidence the thesis holds. Only data from real students can answer that.
 
@@ -35,7 +35,7 @@
 
 ### What the app can do right now
 
-Run `npm run dev`, open `localhost:5173`. The Welcome screen renders; "Step inside" navigates to the survey; 29 questions across 10 sections render with working branching (`showIf`), per-answer autosave to Supabase, resume-from-localStorage on reload, inline validation, light/dark mode, and voice dictation on text questions. `npm run build` passes.
+Run `npm run dev`, open `localhost:5173`. The Welcome screen renders; "Step inside" navigates to the survey; 30 questions across 10 sections render with working branching (`showIf`), per-answer autosave to Supabase, resume-from-localStorage on reload, inline validation, light/dark mode, and voice dictation on text questions. `npm run build` passes.
 
 ### Known limitation, stated plainly
 
@@ -200,23 +200,35 @@ Targeted `?src=` channel links, not open social-media blasts. `SurveyScreen` alr
 
 ## Known problems
 
-Full detail, with severity and confidence, is in `CLAUDE.md` §"Bug list". The two data-integrity bugs that were blocking Phase 4/7 analysis were **fixed on 2026-10-03** — see "Fixes applied during handoff" below. What remains:
+Full detail, with severity and confidence, is in `CLAUDE.md` / "Bug list".
 
-**1. Answer changes can desync the question index.** `index` is a raw integer into `visibleQuestions`, which is recomputed from `answers` on every change. Going back and changing a `showIf`-gating answer (Q21 "Never" → "Sometimes" un-gates Q23) shifts the array and can silently skip a question. Reasoned from the code; not yet reproduced in a browser.
+### Open, in priority order
 
-**2. `questions.json` wording is drafted, not verbatim.** See the second item under "Read this first". This is the one that would most damage the research if overlooked, because the survey would run and produce data that doesn't mean what the sealed Phase-0 rules assume it means.
+**0. Run `supabase-update-policies-patch.sql`.** Found 2026-10-07: autosave was failing *completely* — `.upsert()` triggers a RETURNING check against anon's missing SELECT policy, so every answer save 42501'd and no answers ever reached the `answers` table. The client is fixed (insert-then-update), but `anon update respondent` and `anon update answer` are also absent from the live database, so without this patch: re-answers silently keep the old value, and `completed_at` never writes (Phase 7 completion rate still blocked). Run it, then re-test the contacts/completion flow.
 
-**3. `supabase-contacts-patch.sql` must be run in Supabase before the phone-number fix works.** The code is written and the build passes, but it depends on a unique index and two RLS policies that don't exist yet in the live database. Until the patch is applied, Q53_54 writes will appear to succeed and land nowhere.
+**1. `questions.json` wording is drafted, not verbatim.** This is the one that would most damage the research if overlooked: the survey runs and produces data that doesn't mean what the sealed Phase-0 rules assume it means. The source document was found on 2026-10-05 and the two integrity problems were fixed on 2026-10-06 (see "Source-document cross-check"), but the remaining wording divergences are still open. **Q15 and Q16 still have no source at all.**
 
-### Also outstanding
+**2. Dictation is a no-op on unsupported browsers** (notably iOS Safari) but the button still renders. Several required questions depend on typing. The new mic intro popup correctly hides itself where speech is unsupported, which leaves this inconsistent: on iOS Safari the explainer is absent but the button is present. *Reviewed 2026-10-06 and deliberately left open by decision.*
 
-- **No deduplication.** Clearing localStorage mid-survey creates a second `respondents` row with no way to merge them.
-- **`localStorage` parsing is unguarded.** One corrupted key white-screens the app with no recovery path.
-- **Dictation is a no-op on unsupported browsers** (notably iOS Safari) but the button still renders. Several required questions depend on typing.
-- **Dead Vite scaffolding:** `src/App.css`, `src/assets/{hero.png,react.svg,vite.svg}` — nothing imports them.
-- **`README.md` is still the Vite template default.**
+**3. StrictMode double-inserts a respondent row in dev.** Two rows land in `respondents` per dev load; the second overwrites `ski_respondent_id`, leaving an orphaned empty row. Dev-only, pre-existing, and both rows carry `is_test: true`.
 
----
+**4. Unverified on real hardware.** The iOS notch/overscroll fix and dictation have never been tested on a physical device.
+
+### Resolved 2026-10-06
+
+- **Answer changes desyncing the question index** -- the current question is now tracked by id (`ski_question_id`), not array position. *Verified in a browser.*
+- **Unguarded `localStorage` parsing** -- all reads and writes go through guarded helpers; a corrupted key no longer white-screens the app. *Verified in a browser.*
+- **`maxPicks` never validated** -- now enforced with a specific over-limit message. *Verified in a browser.*
+- **No deduplication** -- added `respondents.device_id`, a stable anonymous UUID under the localStorage key `ski_device_id`. **Requires `supabase-device-id-patch.sql` to be run.**
+- **Dead Vite scaffolding** -- `src/App.css` and `src/assets/*` deleted.
+
+### Resolved 2026-10-03 or earlier
+
+- **`completed_at` never written** -- fixed, which unblocked Phase 7 completion-rate analysis.
+- **Q53_54 wrote to `answers` instead of `contacts`** -- fixed, and `supabase-contacts-patch.sql` was **applied on 2026-10-06** (UPDATE + DELETE policies and the unique index confirmed present).
+- **`README.md` was the Vite template default** -- replaced in `fc66641`.
+- **No git remote** -- `origin` is configured and `main` is in sync.
+
 
 ## Fixes applied during handoff (2026-10-03)
 
@@ -237,13 +249,54 @@ Two data-integrity bugs were fixed, plus the version-control gap:
 
 ---
 
+## Source-document cross-check (2026-10-06)
+
+`SKI_54_Student_Research_Questions.pdf` — 54 questions, created 2026-10-05, newer than every other doc in the repo. Compared question-by-question against `questions.json`.
+
+### Fixed (research integrity)
+
+**1. Q23 option order was silently biased toward a confirming result.** The sealed Q23 rule (PROJECT_BIBLE §10) confirms the thesis if 2+ of *"not aligned to course"* / *"can't ask about exact part"* / *"no way to test myself"* land in the top 3. All 10 options were identical to source, but ours listed those three at **positions 1, 2, 3** while the source lists them at **4, 6, 7**. First-listed options get picked more, so the draft was systematically favouring the confirming outcome — exactly the trap §10 warns about. Source order restored.
+
+**2. The Lecturer test had no option that could fire it.** The sealed rule read *"Q12 top-3 picks name the lecturer's method."* The source's Q12 is a cause question (*"What usually makes a course or topic difficult for you?"*) whose first option is **"The lecturer's explanation."** That question had never been carried into `questions.json` — the drafted Q12 was instead a behaviour question (*"When you don't understand a topic, what do you usually do?"*), whose only lecturer option is *"Ask the lecturer after class"*, which expresses reliance rather than blame. Added as **`Q12_why`**, placed between Q10 and Q12 (source order: cause before behaviour, so coping answers can't prime difficulty attribution), section `how_you_study`, required, pick 1 of up to 3, all 12 source options + Other.
+
+The sealed rule now names `Q12_why`, with a pre-data amendment note in PROJECT_BIBLE §10. **No data existed when this changed** — it corrects the instrument, it does not respond to results, and the threshold and redirect outcome are unchanged.
+
+Question count is now 30 (31 entries including the concept screen); docs updated.
+
+### Still open — wording preference, not integrity
+
+Decided against changing these for now; each is a divergence where the current text is the invented/drafted one and the source differs:
+
+| Q | Current (invented) | Source says |
+|---|---|---|
+| **Q5** | First Class / Second Class Upper / Second Class Lower / Third Class / Pass / Not sure yet | I usually struggle / Below average / Average / Above average / I usually perform very well |
+| **Q2** | 25-entry department picker, all fabricated | *"What are you studying?"* — short answer |
+| **Q32** | "Walk us through how you usually prepare in the final week before an exam." | "When an exam is approaching, how do you decide what to study?" |
+| **Q42** | "What do you mainly use it for?" | "What do you dislike about it?" |
+| **Q50** | Yes definitely / Maybe, depends on price / Probably not / No | Completely free / Free with optional paid features / Monthly / Semester / Pay per course / I wouldn't pay / Not sure |
+| **Q21, Q24** | "Every time I study" | "Almost every time I study" |
+| **Q1** | "What level are you in?" | "What level are you currently in?" |
+| **Q35** | "What are your biggest problems when preparing for exams?" | "What is the biggest problem you face when preparing for exams?" |
+| **Q49, Q52** | close paraphrases | slightly different wording |
+| **Q9** | rewritten 2026-10-05 to name course/first try/who helped | "What topic was it, and what did you do?" |
+
+**Q15 and Q16 still have no source at all** — the PDF's Q15/Q16 are different questions. Those two remain unsourced and need the original instrument found or a decision to keep the drafted wording.
+
+**Deliberately not reverted** (going backwards would undo documented decisions): the concept screen copy (source still carries "personalized study recommendations" — the Tier-3 feature PROJECT_BIBLE §7 cut), Q45's 8-feature list (source is a generic 10-item list including cut features), Q45_why/Q45_missing (added in the Phase 2 restructure), Q36/Q40/Q46/Q53_54 merges, and all 21 dropped questions.
+
+---
+
 ## Exact next steps
 
 In order. Items 1–3 are prerequisites for real work; 4 onward is the Phase 3 → Phase 5 path.
 
-**1. Run the Supabase patch.** Open `supabase-contacts-patch.sql` in this repo and run it in Supabase → SQL Editor. It's idempotent. Without it, Q53_54 phone numbers silently fail to save and Q53_54 is unverified.
+**1. ~~Run the contacts patch.~~ DONE 2026-10-06.** `supabase-contacts-patch.sql` was applied; all three policies (INSERT, UPDATE, DELETE) and `idx_contacts_respondent_id` confirmed present.
 
-**2. Test the two fixes end to end.** Start `npm run dev`, answer through to the end, and confirm in Supabase that (a) the respondent row has `completed_at` set, and (b) entering a phone number creates a row in `contacts` and *not* in `answers`. Then edit the number, clear it, and confirm the `contacts` row updates and deletes correctly.
+**1b. Run the device-id patch.** `supabase-device-id-patch.sql` adds `respondents.device_id`, which bug-list item #1 (deduplication) depends on. It is idempotent. The client already handles its absence by retrying the insert without the column, so nothing breaks if you delay it — but deduplication is inert until it runs.
+
+**1c. Run the update-policies patch (highest priority of the three).** `supabase-update-policies-patch.sql` recreates `anon update respondent` and `anon update answer`. Autosave's client side is fixed and verified, but updates and `completed_at` silently affect zero rows until this runs. Then re-run step 2.
+
+**2. Test the contacts flow end to end.** The patch is applied but the behaviour is still unverified. Start `npm run dev`, answer through to the end, and confirm in Supabase that (a) the respondent row has `completed_at` set, and (b) entering a phone number creates a row in `contacts` and *not* in `answers`. Then edit the number, clear it, and confirm the `contacts` row updates and deletes correctly.
 
 **3. Delete test debris.** `final-check.png` and `.playwright-cli/`. Both are now gitignored, but they're still on disk.
 
@@ -255,7 +308,7 @@ In order. Items 1–3 are prerequisites for real work; 4 onward is the Phase 3 �
 
 **7. Test on a low-end Android over mobile data.** This is Phase 3's actual "done when" criterion and hasn't been done. Nigerian students are on mobile data and low-end devices — every KB of payload is friction.
 
-**8. Cross-check `questions.json` against the original 54-question document.** Do this **before any pilot or fielding.** Pay particular attention to Q12 and Q15, which touch the lecturer-related options that Phase 0 identified as bias traps. If the drafted wording lets a rule pass that the sealed rule intended to fail, the study's conclusions are wrong.
+**8. Finish the source-document wording pass.** The source is found and the two research-integrity items are fixed (see "Source-document cross-check"); the remaining wording divergences are still open. Do this **before any pilot or fielding.** Priority order: **Q15 and Q16 still have no source at all**, then Q5, Q2 and Q50 (invented content, not just invented phrasing), then the prompt alignments (Q1/Q9/Q32/Q35/Q42/Q49/Q52 and the Q21/Q24 scale wording).
 
 **9. Run the Phase 5 pilot** — 5–8 students, in person, timed, unhelped. Success criteria are already written in `PROJECT_BIBLE.md` §11: median under 12 minutes, 6 of 8 finish, nobody asks "what does this mean?" Purge pilot rows before fielding (`is_test` flag exists for exactly this).
 

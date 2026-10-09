@@ -47,7 +47,7 @@ React 19 · TypeScript · Vite 8 · Tailwind CSS v4 · Supabase (Postgres + RLS)
 
 ## How it's built
 
-29 questions across 10 sections, driven entirely by `src/data/questions.json`. Adding a question means editing that one file — there are four question *types*, not 29 screens.
+30 questions across 10 sections, driven entirely by `src/data/questions.json`. Adding a question means editing that one file — there are four question *types*, not 30 screens.
 
 - **Branchings are data.** `showIf` clauses, not conditional JSX.
 - **Answers are one row per question** (`answers` table), never a wide table.

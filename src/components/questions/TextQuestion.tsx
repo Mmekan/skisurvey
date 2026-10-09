@@ -1,22 +1,13 @@
 // src/components/questions/TextQuestion.tsx
 import { useEffect, useRef, useState } from 'react'
 import type { TextQuestion as TextQuestionType } from '../../types/question'
+import { createRecognition, type SpeechRecognitionLike } from '../../lib/speech'
+import MicIntro from './MicIntro'
 
 interface Props {
   question: TextQuestionType
   value?: string
   onChange: (value: string) => void
-}
-
-// Minimal typing for the Web Speech API — not in TS's default lib.
-interface SpeechRecognitionLike {
-  lang: string
-  interimResults: boolean
-  onresult: ((event: any) => void) | null
-  onend: (() => void) | null
-  onerror: (() => void) | null
-  start: () => void
-  stop: () => void
 }
 
 export default function TextQuestion({ question, value, onChange }: Props) {
@@ -33,24 +24,18 @@ export default function TextQuestion({ question, value, onChange }: Props) {
     }
   }, [])
 
-  const insertChip = (chip: string) => {
-    onChange(value ? `${value} ${chip}` : chip)
-  }
-
   const toggleMic = () => {
-    const SpeechRecognitionCtor =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    if (!SpeechRecognitionCtor) return // unsupported browser — button stays inert, not shown as broken
-
     if (listening) {
       recognitionRef.current?.stop()
       return
     }
 
-    const recognition: SpeechRecognitionLike = new SpeechRecognitionCtor()
+    const recognition = createRecognition()
+    if (!recognition) return // unsupported browser — button stays inert, not shown as broken
+
     recognition.lang = 'en-US'
     recognition.interimResults = false
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript
       onChange(value ? `${value} ${transcript}` : transcript)
     }
@@ -62,15 +47,25 @@ export default function TextQuestion({ question, value, onChange }: Props) {
   }
 
   return (
-    <div>
+    <div className="relative flex h-full flex-col">
       <h1 className="text-2xl font-extrabold leading-tight">{question.prompt}</h1>
-      <div className="relative mt-5">
+      <div className="relative mt-4 flex-1">
         <textarea
           value={value ?? ''}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            // A phone number that arrived with letters in it can't be called
+            // and can't be dialed back into the input by a validation rule —
+            // filter at the gate instead of validating after the fact.
+            onChange(
+              question.inputMode === 'tel'
+                ? e.target.value.replace(/[^0-9+()\- ]/g, '')
+                : e.target.value
+            )
+          }}
           placeholder={question.placeholder}
           aria-label={question.prompt}
-          className={`h-48 w-full rounded-2xl border-2 border-brown bg-white p-4 text-base leading-relaxed text-brown dark:bg-ink ${
+          inputMode={question.inputMode}
+          className={`h-full min-h-[9rem] w-full resize-none rounded-2xl border-2 border-brown bg-white p-4 text-base leading-relaxed text-brown dark:bg-ink ${
             question.mic ? 'pr-14' : ''
           }`}
         />
@@ -116,20 +111,7 @@ export default function TextQuestion({ question, value, onChange }: Props) {
           </button>
         )}
       </div>
-      {question.promptChips && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {question.promptChips.map((chip) => (
-            <button
-              key={chip}
-              type="button"
-              onClick={() => insertChip(chip)}
-              className="h-10 rounded-full border-2 border-brown px-3 text-sm font-semibold hover:bg-brown/5"
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
-      )}
+      {question.mic && <MicIntro />}
     </div>
   )
 }

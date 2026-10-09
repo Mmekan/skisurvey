@@ -128,9 +128,9 @@ This was the original welcome-screen plan: a giant "S.K.I" letterform that zoome
 
 **Deliberately cut on 2026-10-02.** `WelcomeScreen.tsx` is now fully static, no animation, matching the sunset/ivory mockup in §6. `GlyphPortal.tsx` was deleted from the codebase. This section is kept only as a historical record of the decision — if Glyph Portal ever comes back, it must be an explicit ask, not a rebuild from this old spec.
 
-## 9. The research survey — 29 locked questions
+## 9. The research survey — 30 locked questions
 
-Branching: Q21 gates Q23, Q24 gates Q26, Q40 "None" skips Q42+Q43. Concept block (Q45 → Q45_why → Q45_missing → Q46 → Q49) renders **last**, after all problem-diagnosis questions — asking about SKI first would prime every earlier answer. A student who skips all branches sees ~24 of 30 total screens. Estimated 10–12 minutes (unverified — pilot will measure it).
+Branching: Q21 gates Q23, Q24 gates Q26, Q40 "None" skips Q42+Q43. Concept block (Q45 → Q45_why → Q45_missing → Q46 → Q49) renders **last**, after all problem-diagnosis questions — asking about SKI first would prime every earlier answer. `questions.json` holds 31 entries (30 questions + the concept screen); a student who takes every branch sees all 31, one who skips all three branches sees 27. Estimated 10–12 minutes (unverified — pilot will measure it).
 
 **8 required typed answers:** Q9, Q10, Q20, Q36, Q43, Q45_why, Q49, Q52. (This line and the branching note above had drifted out of sync with the table below after the Q45 restructure — fixed now; table was always correct.)
 
@@ -141,6 +141,7 @@ Branching: Q21 gates Q23, Q24 gates Q26, Q40 "None" skips Q42+Q43. Concept block
 | Q5 | About you | Academic performance | Tap |
 | Q9 | How you study | A recent topic you struggled with + what you did about it | Typed, **required** |
 | Q10 | How you study | What eventually helped | Typed, **required** |
+| Q12_why | How you study | What usually makes a course or topic difficult for you (carries the "lecturer's explanation" option the Lecturer test keys on) | Pick up to 3 |
 | Q12 | How you study | What you do when you don't understand (includes lecturer-related options) | Pick up to 3 |
 | Q13 | How you study | What you do when stuck (added: "private tutorial/lesson", "re-read manual/notes") | Tap |
 | Q15 | Understanding | *(exact wording not preserved — check original 54-question source doc)* | Pick up to 3 |
@@ -182,7 +183,9 @@ Branching: Q21 gates Q23, Q24 gates Q26, Q40 "None" skips Q42+Q43. Concept block
 | Rule | Confirms thesis if | Kills/redirects if |
 |---|---|---|
 | **Q23** | 2+ of "not aligned to my course," "can't ask about exact part," "no way to test myself" in top 3 (among YouTube users) | None of them in top 3 → thesis dead. Exactly 1 → weak, read long answers |
-| **Lecturer test** | — | 1-in-3+ of Q9 typed answers or Q12 top-3 picks name the lecturer's method → ground content on manuals/past questions, not syllabus (already the plan — see §5) |
+| **Lecturer test** | — | 1-in-3+ of Q9 typed answers **or Q12_why top-3 picks** name the lecturer's method → ground content on manuals/past questions, not syllabus (already the plan — see §5) |
+
+**Pre-data amendment to the Lecturer test (2026-10-06):** the original wording pointed at "Q12 top-3 picks". The instrument's Q12 is a *behaviour* question ("what do you usually do when you don't understand"), whose only lecturer-related option is "Ask the lecturer after class" — that expresses *reliance* on the lecturer, not that the lecturer's method *caused* the difficulty, so the rule as written could never fire on the instrument as built. The cause question that the rule needs ("The lecturer's explanation" as an option) existed in the 54-question source as Q12 but had never been carried into `questions.json`. **No data existed when this was corrected** — it is a fix to the instrument, not a response to results. The threshold and the redirect outcome are unchanged.
 | **Q10** | Sealed prediction: dominated by "a person explaining it" → timestamp Q&A is the make-or-break feature, videos are what it hangs on | Dominated by "material" → lean harder on manual-grounded video quality instead |
 | **Q35** | 2+ "Core" options (don't understand topics, forgetting, lack of practice questions, poor materials) in top 3 → SKI aimed right | "Don't know what to prioritize"/"too much material" #1 → move exam-focused/planner features up roadmap. "Not enough time"/"anxiety"/"discipline" #1 → rethink the exam-season pitch entirely |
 | **Q52** | Answers cluster on specific features → price around that feature | Cluster on price point → consider freemium. Cluster on proof/trust → need a free trial before monetizing |
@@ -202,7 +205,7 @@ Branching: Q21 gates Q23, Q24 gates Q26, Q40 "None" skips Q42+Q43. Concept block
 |---|---|---|---|---|
 | 0 | Instrument | 28 questions frozen, written confirm-or-kill rules | Every gold question has a written rule before any data exists | Designing UI before questions are frozen |
 | 1 | Data spine | Supabase schema, RLS, `is_test` field | Fake partial response inserts cleanly via anon key; anon key cannot read any row back | One wide table — use answer-per-row |
-| 2 | Survey engine | Generic renderer driven by `questions.json`; autosave; resume; branching | Adding a question = editing JSON only | Hardcoding 29 screens — there are ~6 question types |
+| 2 | Survey engine | Generic renderer driven by `questions.json`; autosave; resume; branching | Adding a question = editing JSON only | Hardcoding 30 screens — there are ~6 question types |
 | 3 | Identity + static welcome | DM Sans, palette, static welcome screen matching mockup (no animation — Glyph Portal cut, see §8) | Tested on a real low-end Android on mobile data, not desktop Chrome | N/A — static screen has no animation-jank risk |
 | 4 | Admin | Login, live feed, question explorer, filters, CSV export | "What frustrates 100-level students about YouTube?" answerable in 30 seconds | Building charts before knowing data shapes — ship CSV first |
 | 5 | Pilot | 5–8 students, in person, timed, unhelped | Median under 12 min, 6/8 finish, nobody asks "what does this mean?" | Sending to friends and asking "is it good?" is not a pilot. Purge pilot rows before launch |
