@@ -30,7 +30,7 @@ export default function ThankYouScreen() {
         </h1>
         <p className="mt-5 text-base leading-relaxed text-brown/70">
           Your answers are recorded. If you left a number we may reach out to ask a
-          couple of follow-up questions &mdash; nothing more than that.
+          couple of follow-up questions, nothing more than that.
         </p>
         <p className="mt-8 text-sm text-brown/60">
           There are no right answers here, so nothing you said can be wrong.

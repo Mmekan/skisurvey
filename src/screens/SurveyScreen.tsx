@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import schema from '../data/questions.json'
 import type { Question, SurveySchema } from '../types/question'
-import { supabase } from '../lib/supabase'
+import { supabase, isSupabaseConfigured } from '../lib/supabase'
 import { saveAnswer as rpcSaveAnswer, saveContact as rpcSaveContact, markCompleted } from '../lib/save'
 import TapQuestion from '../components/questions/TapQuestion'
 import MultiSelect from '../components/questions/MultiSelect'
@@ -310,6 +310,11 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
       <div className="flex h-full w-full max-w-md flex-col">
         <ProgressBar sections={sections} currentSectionId={current.section} />
         <div aria-live="polite">
+          {!isSupabaseConfigured && (
+            <p className="mx-5 mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+              Survey unavailable — configuration missing.
+            </p>
+          )}
           {saveError && (
             <p className="mx-5 mt-3 rounded-xl bg-orange-dark/10 px-3 py-2 text-sm font-semibold text-orange-dark">
               Couldn’t save your answer. Check your connection.
