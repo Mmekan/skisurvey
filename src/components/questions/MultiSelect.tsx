@@ -49,10 +49,10 @@ export default function MultiSelect({ question, value, onChange }: Props) {
   return (
     <div>
       <h1 className="text-2xl font-extrabold leading-tight text-black">{question.prompt}</h1>
-      <p className="mt-2 text-sm text-black/70">
+      <p className="mt-2 text-sm text-black/70" aria-live="polite">
         Select up to {question.maxPicks}. {value.length} selected.
         {value.length >= question.maxPicks && (
-          <span className="font-semibold text-orange-600"> Limit reached — remove one to pick another.</span>
+          <span className="font-semibold text-orange-600"> Limit reached, remove one to pick another.</span>
         )}
       </p>
       <div className="mt-5 flex flex-wrap gap-2">

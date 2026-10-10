@@ -284,6 +284,9 @@ Decided against changing these for now; each is a divergence where the current t
 
 **Deliberately not reverted** (going backwards would undo documented decisions): the concept screen copy (source still carries "personalized study recommendations" — the Tier-3 feature PROJECT_BIBLE §7 cut), Q45's 8-feature list (source is a generic 10-item list including cut features), Q45_why/Q45_missing (added in the Phase 2 restructure), Q36/Q40/Q46/Q53_54 merges, and all 21 dropped questions.
 
+### Postgraduate past-tense twins (2026-10-10)
+`Q1=Postgraduate` now branches to past-tense twins: `Q2_past` ("What department were you in?"), `Q1b` ("How long have you been a graduate?"), `Q12_why_past` and `Q12_past`. Analysis must coalesce `COALESCE(Q12, Q12_past)` and `COALESCE(Q12_why, Q12_why_past)` — they are the same instrument item under different ids, so a naive `GROUP BY question_id` splits the sample.
+
 ---
 
 ## Exact next steps

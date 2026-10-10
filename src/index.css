@@ -22,19 +22,17 @@
   --font-sans: "DM Sans", system-ui, sans-serif;
 }
 
-/* Set on html too, not just body: this is what shows through iOS Safari's
-   overscroll "rubber-band" bounce and some notch/status-bar rendering paths.
-   Without it, those areas fall through to html's default white regardless
-   of what body or any screen's own background is set to. */
+/* Single consistent layer: white everywhere — no cream showing on overscroll,
+   pull-down, or PC edges. The card, html, body and App share one bg. */
 html {
-  background-color: var(--color-cream);
+  background-color: #FFFFFF;
 }
 
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: var(--color-cream);
-  color: var(--color-brown);
+  background-color: #FFFFFF;
+  color: #0A0A0A;
   -webkit-font-smoothing: antialiased;
 }
 

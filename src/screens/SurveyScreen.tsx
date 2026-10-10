@@ -9,6 +9,8 @@ import MultiSelect from '../components/questions/MultiSelect'
 import TextQuestion from '../components/questions/TextQuestion'
 import ConceptScreen from '../components/questions/ConceptScreen'
 import ProgressBar from '../components/ProgressBar'
+import BlurFade from '../components/BlurFade'
+import { fireworks, sideCannons } from '../lib/confetti'
 // import ThemeToggle from '../components/ThemeToggle' // hidden for now — the
 // switch took a row of its own above Continue and cramped the question area on
 // a 375px screen. Dark mode itself still works; only the control is hidden.
@@ -115,7 +117,7 @@ function getValidationMessage(q: Question, value: AnswerValue | undefined): stri
   if (q.type === 'multiSelect') {
     const picked = (value as string[] | undefined)?.length ?? 0
     if (picked > q.maxPicks) {
-      return `Remove ${picked - q.maxPicks} to continue — up to ${q.maxPicks} allowed.`
+      return `Remove ${picked - q.maxPicks} to continue, up to ${q.maxPicks} allowed.`
     }
     const remaining = q.minPicks - picked
     return `Pick ${remaining} more to continue.`
@@ -140,6 +142,8 @@ export default function SurveyScreen() {
   const [currentId, setCurrentId] = useState<string | null>(() => readKey(QUESTION_ID_KEY))
   const [respondentId, setRespondentId] = useState<string | null>(() => readKey(RESPONDENT_KEY))
   const [saveError, setSaveError] = useState(false)
+  const [halfOpen, setHalfOpen] = useState(false)
+  const [pointsOpen, setPointsOpen] = useState(false)
 
   // Create the respondent row once, on first load only.
   //
@@ -214,6 +218,38 @@ export default function SurveyScreen() {
     if (!hasCompleted || !respondentId) return
     void markCompleted(respondentId)
   }, [hasCompleted, respondentId])
+
+  useEffect(() => {
+    if (!hasCompleted) return
+    let cleanup: (() => void) | undefined
+    const t = setTimeout(() => {
+      cleanup = sideCannons()
+    }, 400)
+    return () => {
+      clearTimeout(t)
+      cleanup?.()
+    }
+  }, [hasCompleted])
+
+  const progressPct = visibleQuestions.length ? (index + 1) / visibleQuestions.length : 0
+  useEffect(() => {
+    if (hasCompleted) return
+    if (progressPct >= 0.5 && !readKey('ski_half_seen')) {
+      writeKey('ski_half_seen', '1')
+      const cleanup = fireworks()
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time milestone, not a render loop
+      setHalfOpen(true)
+      return () => cleanup?.()
+    }
+  }, [progressPct, hasCompleted])
+  useEffect(() => {
+    if (hasCompleted) return
+    if (progressPct >= 0.85 && !readKey('ski_points_seen')) {
+      writeKey('ski_points_seen', '1')
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time milestone
+      setPointsOpen(true)
+    }
+  }, [progressPct, hasCompleted])
 
   useEffect(() => {
     writeKey(ANSWERS_KEY, JSON.stringify(answers))
@@ -306,8 +342,8 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const validationMessage = getValidationMessage(current, answers[current.id])
 
   return (
-    <div className="flex h-dvh justify-center overflow-hidden bg-transparent pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-black">
-      <div className="flex h-full w-full max-w-md flex-col rounded-[2rem] border border-white/40 bg-[#F3F7FA]/85 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl">
+    <div className="flex h-dvh justify-center overflow-hidden bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-black">
+      <div className="flex h-full w-full max-w-md flex-col bg-white">
         <ProgressBar sections={sections} currentSectionId={current.section} />
         <div aria-live="polite">
           {!isSupabaseConfigured && (
@@ -326,28 +362,30 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
           the scroll area accepts horizontal drags and the concept block slides
           side to side. The bleed itself still renders edge to edge. */}
         <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden px-5 pt-6">
-          {current.type === 'tap' && (
-            <TapQuestion
-              question={current}
-              value={answers[current.id] as string | undefined}
-              onChange={(v) => saveAnswer(current.id, v)}
-            />
-          )}
-          {current.type === 'multiSelect' && (
-            <MultiSelect
-              question={current}
-              value={(answers[current.id] as string[] | undefined) ?? []}
-              onChange={(v) => saveAnswer(current.id, v)}
-            />
-          )}
-          {current.type === 'text' && (
-            <TextQuestion
-              question={current}
-              value={answers[current.id] as string | undefined}
-              onChange={(v) => saveAnswer(current.id, v)}
-            />
-          )}
-          {current.type === 'concept' && <ConceptScreen question={current} />}
+          <BlurFade id={current.id}>
+            {current.type === 'tap' && (
+              <TapQuestion
+                question={current}
+                value={answers[current.id] as string | undefined}
+                onChange={(v) => saveAnswer(current.id, v)}
+              />
+            )}
+            {current.type === 'multiSelect' && (
+              <MultiSelect
+                question={current}
+                value={(answers[current.id] as string[] | undefined) ?? []}
+                onChange={(v) => saveAnswer(current.id, v)}
+              />
+            )}
+            {current.type === 'text' && (
+              <TextQuestion
+                question={current}
+                value={answers[current.id] as string | undefined}
+                onChange={(v) => saveAnswer(current.id, v)}
+              />
+            )}
+            {current.type === 'concept' && <ConceptScreen question={current} />}
+          </BlurFade>
         </div>
         {validationMessage && (
           <p className="mx-5 mb-1 text-sm font-semibold text-orange-600">{validationMessage}</p>
@@ -369,12 +407,32 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
             type="button"
             onClick={goNext}
             disabled={!canContinue}
-            className="h-14 flex-1 rounded-2xl border-2 border-black bg-gradient-to-br from-orange-500 to-[#5798E0] font-bold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] transition hover:brightness-105 active:translate-y-[3px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)] disabled:opacity-40 disabled:shadow-none disabled:hover:brightness-100 disabled:active:translate-y-0"
+            className="h-14 flex-1 rounded-2xl border-2 border-black bg-orange-500 font-bold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] transition hover:brightness-105 active:translate-y-[3px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)] disabled:opacity-40 disabled:shadow-none disabled:hover:brightness-100 disabled:active:translate-y-0"
           >
             Continue
           </button>
         </div>
       </div>
+      {halfOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]" onClick={() => setHalfOpen(false)}>
+          <div className="w-full max-w-sm rounded-3xl border-2 border-black bg-white p-6 shadow-[0_8px_0_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
+            <p className="text-2xl">🎉</p>
+            <h2 className="mt-2 text-xl font-black text-black">You&apos;re amazing, halfway there!</h2>
+            <p className="mt-2 text-sm leading-relaxed text-black/70">Just a few more to go. When we finally afford the company building, we&apos;re framing your name in the Hall of Fame. Catch your breath — you&apos;ve earned it.</p>
+            <button type="button" onClick={() => setHalfOpen(false)} className="mt-5 h-12 w-full rounded-2xl border-2 border-black bg-orange-500 font-bold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] active:translate-y-[2px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)]">Keep going</button>
+          </div>
+        </div>
+      )}
+      {pointsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]" onClick={() => setPointsOpen(false)}>
+          <div className="w-full max-w-sm rounded-3xl border-2 border-black bg-white p-6 shadow-[0_8px_0_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
+            <p className="text-2xl">⭐</p>
+            <h2 className="mt-2 text-xl font-black text-black">You&apos;ve earned points!</h2>
+            <p className="mt-2 text-sm leading-relaxed text-black/70">Complete the survey and leave the same contact at the end, your points will be redeemable on the SKI app at launch.</p>
+            <button type="button" onClick={() => setPointsOpen(false)} className="mt-5 h-12 w-full rounded-2xl border-2 border-black bg-[#5798E0] font-bold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] active:translate-y-[2px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)]">Nice — continue</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

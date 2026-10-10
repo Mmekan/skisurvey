@@ -21,6 +21,15 @@
       "options": ["100 Level", "200 Level", "300 Level", "400 Level", "500 Level+", "Postgraduate", "Other"]
     },
     {
+      "id": "Q1b",
+      "section": "about_you",
+      "type": "tap",
+      "required": true,
+      "prompt": "How long have you been a graduate?",
+      "options": ["Less than 1 year", "1–2 years", "3–5 years", "More than 5 years"],
+      "showIf": { "questionId": "Q1", "valueIn": ["Postgraduate"] }
+    },
+    {
       "id": "Q2",
       "section": "about_you",
       "type": "tap",
@@ -53,7 +62,44 @@
         "Psychology",
         "Sociology",
         "Other"
-      ]
+      ],
+      "showIf": { "questionId": "Q1", "valueNotIn": ["Postgraduate"] }
+    },
+    {
+      "id": "Q2_past",
+      "section": "about_you",
+      "type": "tap",
+      "required": true,
+      "prompt": "What department were you in?",
+      "options": [
+        "Accounting",
+        "Agriculture",
+        "Architecture",
+        "Banking and Finance",
+        "Biochemistry",
+        "Biology / Microbiology",
+        "Business Administration",
+        "Chemical Engineering",
+        "Chemistry",
+        "Civil Engineering",
+        "Computer Science",
+        "Economics",
+        "Electrical / Electronic Engineering",
+        "English",
+        "Law",
+        "Mass Communication",
+        "Mathematics / Statistics",
+        "Mechanical Engineering",
+        "Medicine and Surgery (MBBS)",
+        "Nursing Science",
+        "Pharmacy",
+        "Physics",
+        "Political Science",
+        "Psychology",
+        "Sociology",
+        "Other"
+      ],
+      "showIf": { "questionId": "Q1", "valueIn": ["Postgraduate"] }
     },
     {
       "id": "Q12_why",
@@ -77,7 +123,33 @@
         "Other"
       ],
       "minPicks": 1,
-      "maxPicks": 3
+      "maxPicks": 3,
+      "showIf": { "questionId": "Q1", "valueNotIn": ["Postgraduate"] }
+    },
+    {
+      "id": "Q12_why_past",
+      "section": "how_you_study",
+      "type": "multiSelect",
+      "required": true,
+      "prompt": "What usually made a topic hard for you?",
+      "options": [
+        "Lecturer jumped too fast or assumed I already knew things",
+        "The material was too complicated",
+        "Not enough examples or practice",
+        "Too much material to cover",
+        "I didn't know where to start",
+        "I couldn't visualize the concept",
+        "I needed it explained in a different way",
+        "I understood it at first but forgot later",
+        "I lacked good practice questions",
+        "I got distracted easily",
+        "I didn't have enough time",
+        "The material was boring / not engaging",
+        "Other"
+      ],
+      "minPicks": 1,
+      "maxPicks": 3,
+      "showIf": { "questionId": "Q1", "valueIn": ["Postgraduate"] }
     },
     {
       "id": "Q12",
@@ -96,7 +168,28 @@
         "Other"
       ],
       "minPicks": 1,
-      "maxPicks": 3
+      "maxPicks": 3,
+      "showIf": { "questionId": "Q1", "valueNotIn": ["Postgraduate"] }
+    },
+    {
+      "id": "Q12_past",
+      "section": "how_you_study",
+      "type": "multiSelect",
+      "required": true,
+      "prompt": "When you didn't understand something, what did you usually do?",
+      "options": [
+        "Asked the lecturer after class",
+        "Asked a coursemate or senior",
+        "Went for a private tutorial",
+        "Re-read the course manual or notes",
+        "Searched YouTube or Google",
+        "Asked an AI tool (ChatGPT, etc.)",
+        "Just kept going and hoped it clicked later",
+        "Other"
+      ],
+      "minPicks": 1,
+      "maxPicks": 3,
+      "showIf": { "questionId": "Q1", "valueIn": ["Postgraduate"] }
     },
     {
       "id": "Q15",
@@ -209,8 +302,9 @@
       "required": false,
       "prompt": "Here's the idea we're exploring:",
       "body": [
-        "Videos matched to your exact course and topic",
+        "Engage content matched to your exact course and topic",
         "Pause and ask a question about the exact part you just watched",
+        "Videos matched to your exact course and topic",
         "Get tested right after you learn something",
         "Get quizzed later on what you're starting to forget"
       ]

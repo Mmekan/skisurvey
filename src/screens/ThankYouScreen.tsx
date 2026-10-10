@@ -17,7 +17,7 @@ export default function ThankYouScreen() {
   }, [])
 
   return (
-    <div className="flex h-dvh items-center justify-center overflow-hidden bg-[#F3F7FA]/90 px-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-black backdrop-blur-2xl">
+    <div className="flex h-dvh items-center justify-center overflow-hidden bg-white px-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-black">
       <div className="w-full max-w-md text-center">
         <div aria-hidden="true" className="mb-8 flex justify-center">
           <span className="h-8 w-8 rounded-full border-[3px] border-white bg-orange-500" />

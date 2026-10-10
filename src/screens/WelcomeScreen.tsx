@@ -19,8 +19,8 @@ export default function WelcomeScreen() {
   }, [])
 
   return (
-    <div className="flex h-dvh justify-center overflow-hidden bg-transparent pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-black">
-      <div className="relative flex w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
+    <div className="flex h-dvh justify-center overflow-hidden bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-black">
+      <div className="relative flex w-full max-w-md flex-col bg-white">
         <div className="relative z-10 flex h-full flex-col px-6 pt-10 pb-2">
           <h1 className="mt-20 text-balance text-[56px] font-black leading-[1.05] tracking-tight text-black">
             Tell us<br />

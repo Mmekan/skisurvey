@@ -38,14 +38,12 @@ export default function MicIntro() {
 
   return (
     <div
-      className="absolute inset-0 z-20 flex items-center justify-center bg-brown/60 px-5"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="mic-intro-title"
+      className="mt-4 w-full rounded-3xl border-2 border-black bg-white p-5 text-black shadow-[0_4px_0_rgba(0,0,0,0.8)]"
+      role="region"
+      aria-label="Voice input tip"
     >
-      <div className="w-full max-w-sm rounded-3xl border-2 border-brown bg-cream p-5 text-brown shadow-[0_6px_0_var(--color-brown)] dark:bg-ink dark:text-cream">
-        <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border-2 border-brown bg-amber">
+      <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border-2 border-black bg-[#F9A136]">
             <svg
               width="20"
               height="20"
@@ -71,11 +69,7 @@ export default function MicIntro() {
         <ul className="mt-4 space-y-2 text-[0.95rem] leading-relaxed">
           <li>Tap the mic once and start speaking. Tap it again to stop.</li>
           <li>
-            It cleans up your words as you go, so &ldquo;um so i just uh read the
-            manual&rdquo; comes out as a proper sentence.
-          </li>
-          <li>
-            Speak in your own <strong>simple, clear words</strong> — short
+            Speak in your own <strong>simple, clear words</strong>, short
             sentences are recorded most accurately. Use whatever words you
             normally use.
           </li>
@@ -86,11 +80,10 @@ export default function MicIntro() {
           ref={closeRef}
           type="button"
           onClick={dismiss}
-          className="mt-5 h-12 w-full rounded-2xl border-2 border-brown bg-amber font-bold shadow-[0_4px_0_var(--color-brown)] transition active:translate-y-[3px] active:shadow-[0_1px_0_var(--color-brown)]"
+          className="mt-5 h-12 w-full rounded-2xl border-2 border-black bg-orange-500 font-bold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] transition active:translate-y-[3px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)]"
         >
           Got it
         </button>
-      </div>
     </div>
   )
 }
