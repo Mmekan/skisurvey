@@ -40,7 +40,7 @@ export default function WelcomeScreen() {
     <div className="flex h-dvh justify-center overflow-hidden bg-transparent pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-black">
       <div className="relative flex w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
         <div aria-hidden="true" className="absolute inset-x-0 top-0 h-72">
-          <img src="/study-bg.jpg" alt="" className="h-full w-full object-cover object-center" />
+          <img src="/welcome-hero.jpg" alt="" className="h-full w-full object-cover object-center" />
           <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/60 to-white" />
         </div>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 font-extrabold">
@@ -62,13 +62,7 @@ export default function WelcomeScreen() {
         </div>
 
         <div className="relative z-10 flex h-full flex-col px-6 pt-6">
-          <div className="self-end text-left text-base font-bold uppercase leading-[1.2] tracking-wide">
-            <span className="text-[1.3em] font-black text-orange-500">S</span>tudent<br />
-            <span className="text-[1.3em] font-black text-orange-500">K</span>nowledge<br />
-            <span className="text-[1.3em] font-black text-orange-500">I</span>nterface
-          </div>
-
-          <h1 className="mt-2 text-balance text-[56px] font-black leading-[1.05] tracking-tight text-black">
+          <h1 className="mt-12 text-balance text-[56px] font-black leading-[1.05] tracking-tight text-black">
             Tell us<br />
             how you<br />
             actually<br />
@@ -81,12 +75,12 @@ export default function WelcomeScreen() {
           </h1>
           <p className="text-2xl font-bold italic text-black/50">if you do.</p>
 
-          <p className="mt-8 text-base leading-relaxed text-black/70">
+          <p className="mt-6 text-base leading-relaxed text-black/70">
             We’re building SKI for Nigerian university students, and we’d rather ask
             than guess. <span className="font-bold text-[#5798E0]">There are no right answers.</span>
           </p>
 
-          <div className="flex-1" />
+          <div className="h-10" />
 
           <button
             type="button"
