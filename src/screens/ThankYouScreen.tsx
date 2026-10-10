@@ -17,22 +17,22 @@ export default function ThankYouScreen() {
   }, [])
 
   return (
-    <div className="flex h-dvh items-center justify-center overflow-hidden bg-cream px-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-brown">
+    <div className="flex h-dvh items-center justify-center overflow-hidden bg-[#F3F7FA]/90 px-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-black backdrop-blur-2xl">
       <div className="w-full max-w-md text-center">
         <div aria-hidden="true" className="mb-8 flex justify-center">
-          <span className="h-8 w-8 rounded-full border-[3px] border-cream bg-sunset-red" />
-          <span className="-ml-2 h-8 w-8 rounded-full border-[3px] border-cream bg-sunset-orange" />
-          <span className="-ml-2 h-8 w-8 rounded-full border-[3px] border-cream bg-lime" />
+          <span className="h-8 w-8 rounded-full border-[3px] border-white bg-orange-500" />
+          <span className="-ml-2 h-8 w-8 rounded-full border-[3px] border-white bg-[#5798E0]" />
+          <span className="-ml-2 h-8 w-8 rounded-full border-[3px] border-white bg-[#4FB118]" />
         </div>
 
         <h1 className="text-balance text-4xl font-black leading-tight">
           That&rsquo;s everything. Thank you.
         </h1>
-        <p className="mt-5 text-base leading-relaxed text-brown/70">
+        <p className="mt-5 text-base leading-relaxed text-black/70">
           Your answers are recorded. If you left a number we may reach out to ask a
           couple of follow-up questions, nothing more than that.
         </p>
-        <p className="mt-8 text-sm text-brown/60">
+        <p className="mt-8 text-sm text-black/60">
           There are no right answers here, so nothing you said can be wrong.
         </p>
       </div>

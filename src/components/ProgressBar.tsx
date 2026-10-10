@@ -23,7 +23,7 @@ export default function ProgressBar({ sections, currentSectionId }: Props) {
           key={section.id}
           aria-hidden="true"
           className={`h-2 flex-1 rounded-full ${
-            i < currentIndex ? 'bg-orange' : i === currentIndex ? 'bg-amber' : 'bg-brown/20'
+            i < currentIndex ? 'bg-orange-500' : i === currentIndex ? 'bg-[#5798E0]' : 'bg-black/10'
           }`}
         />
       ))}

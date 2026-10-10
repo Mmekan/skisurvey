@@ -40,10 +40,10 @@ export default function TapQuestion({ question, value, onChange }: Props) {
               type="button"
               onClick={() => select(option)}
               aria-pressed={isOn}
-              className={`min-h-12 break-words rounded-2xl border-2 border-brown px-4 py-3 text-left font-semibold leading-snug transition ${
+              className={`min-h-12 break-words rounded-2xl border-2 border-black px-4 py-3 text-left font-semibold leading-snug transition ${
                 isOn
-                  ? 'translate-y-[3px] bg-amber shadow-[0_1px_0_var(--color-brown)]'
-                  : 'bg-white shadow-[0_4px_0_var(--color-brown)] hover:brightness-95 dark:bg-ink dark:hover:brightness-125'
+                  ? 'translate-y-[3px] bg-[#5798E0] text-white shadow-[0_1px_0_rgba(0,0,0,0.8)]'
+                  : 'bg-white/90 text-black shadow-[0_4px_0_rgba(0,0,0,0.8)] hover:brightness-95'
               }`}
             >
               {option}
@@ -60,7 +60,7 @@ export default function TapQuestion({ question, value, onChange }: Props) {
           }
           placeholder="Tell us what that is"
           aria-label="Tell us what you mean by other"
-          className="mt-3 h-24 w-full rounded-2xl border-2 border-brown bg-white p-3 text-base leading-relaxed text-brown dark:bg-ink"
+          className="mt-3 h-24 w-full rounded-2xl border-2 border-black bg-white/90 p-3 text-base leading-relaxed text-black"
         />
       )}
     </div>

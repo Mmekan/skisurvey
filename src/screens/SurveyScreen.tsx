@@ -306,8 +306,8 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const validationMessage = getValidationMessage(current, answers[current.id])
 
   return (
-    <div className="flex h-dvh justify-center overflow-hidden bg-cream pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-brown">
-      <div className="flex h-full w-full max-w-md flex-col">
+    <div className="flex h-dvh justify-center overflow-hidden bg-transparent pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-black">
+      <div className="flex h-full w-full max-w-md flex-col rounded-[2rem] border border-white/40 bg-[#F3F7FA]/85 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl">
         <ProgressBar sections={sections} currentSectionId={current.section} />
         <div aria-live="polite">
           {!isSupabaseConfigured && (
@@ -316,7 +316,7 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
             </p>
           )}
           {saveError && (
-            <p className="mx-5 mt-3 rounded-xl bg-orange-dark/10 px-3 py-2 text-sm font-semibold text-orange-dark">
+            <p className="mx-5 mt-3 rounded-xl bg-orange-500/10 px-3 py-2 text-sm font-semibold text-orange-600">
               Couldn’t save your answer. Check your connection.
             </p>
           )}
@@ -350,7 +350,7 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
           {current.type === 'concept' && <ConceptScreen question={current} />}
         </div>
         {validationMessage && (
-          <p className="mx-5 mb-1 text-sm font-semibold text-orange-dark">{validationMessage}</p>
+          <p className="mx-5 mb-1 text-sm font-semibold text-orange-600">{validationMessage}</p>
         )}
         {/* <div className="flex justify-start px-5 pt-2">
           <ThemeToggle />
@@ -360,7 +360,7 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
             <button
               type="button"
               onClick={goBack}
-              className="h-14 flex-shrink-0 rounded-2xl border-2 border-brown bg-white px-6 font-semibold shadow-[0_4px_0_var(--color-brown)] transition hover:brightness-95 active:translate-y-[3px] active:shadow-[0_1px_0_var(--color-brown)] dark:bg-ink dark:hover:brightness-125"
+              className="h-14 flex-shrink-0 rounded-2xl border-2 border-black bg-white/90 px-6 font-semibold text-black shadow-[0_4px_0_rgba(0,0,0,0.8)] backdrop-blur-sm transition hover:brightness-95 active:translate-y-[3px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)]"
             >
               Back
             </button>
@@ -369,7 +369,7 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
             type="button"
             onClick={goNext}
             disabled={!canContinue}
-            className="h-14 flex-1 rounded-2xl border-2 border-brown bg-amber font-bold shadow-[0_4px_0_var(--color-brown)] transition hover:brightness-105 active:translate-y-[3px] active:shadow-[0_1px_0_var(--color-brown)] disabled:opacity-40 disabled:shadow-none disabled:hover:brightness-100 disabled:active:translate-y-0"
+            className="h-14 flex-1 rounded-2xl border-2 border-black bg-gradient-to-br from-orange-500 to-[#5798E0] font-bold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] transition hover:brightness-105 active:translate-y-[3px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)] disabled:opacity-40 disabled:shadow-none disabled:hover:brightness-100 disabled:active:translate-y-0"
           >
             Continue
           </button>

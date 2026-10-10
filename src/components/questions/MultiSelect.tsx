@@ -48,11 +48,11 @@ export default function MultiSelect({ question, value, onChange }: Props) {
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold leading-tight">{question.prompt}</h1>
-      <p className="mt-2 text-sm text-brown/70">
+      <h1 className="text-2xl font-extrabold leading-tight text-black">{question.prompt}</h1>
+      <p className="mt-2 text-sm text-black/70">
         Select up to {question.maxPicks}. {value.length} selected.
         {value.length >= question.maxPicks && (
-          <span className="font-semibold text-orange-dark"> Limit reached — remove one to pick another.</span>
+          <span className="font-semibold text-orange-600"> Limit reached — remove one to pick another.</span>
         )}
       </p>
       <div className="mt-5 flex flex-wrap gap-2">
@@ -66,10 +66,10 @@ export default function MultiSelect({ question, value, onChange }: Props) {
               onClick={() => toggle(option)}
               aria-pressed={isOn}
               disabled={atLimit}
-              className={`min-h-11 break-words rounded-full border-2 border-brown px-4 py-2.5 text-left font-semibold leading-snug transition disabled:opacity-40 ${
+              className={`min-h-11 break-words rounded-full border-2 border-black px-4 py-2.5 text-left font-semibold leading-snug transition disabled:opacity-40 ${
                 isOn
-                  ? 'translate-y-[2px] bg-amber shadow-[0_1px_0_var(--color-brown)]'
-                  : 'bg-white shadow-[0_3px_0_var(--color-brown)] hover:brightness-95 dark:bg-ink dark:hover:brightness-125'
+                  ? 'translate-y-[2px] bg-[#5798E0] text-white shadow-[0_1px_0_rgba(0,0,0,0.8)]'
+                  : 'bg-white/90 text-black shadow-[0_3px_0_rgba(0,0,0,0.8)] hover:brightness-95'
               }`}
             >
               {option}
@@ -84,7 +84,7 @@ export default function MultiSelect({ question, value, onChange }: Props) {
           onChange={(e) => setOtherText(e.target.value)}
           placeholder="Tell us what that is"
           aria-label="Tell us what you mean by other"
-          className="mt-4 h-24 w-full rounded-2xl border-2 border-brown bg-white p-3 text-base leading-relaxed text-brown dark:bg-ink"
+          className="mt-4 h-24 w-full rounded-2xl border-2 border-black bg-white/90 p-3 text-base leading-relaxed text-black"
         />
       )}
     </div>

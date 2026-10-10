@@ -39,10 +39,6 @@ export default function WelcomeScreen() {
   return (
     <div className="flex h-dvh justify-center overflow-hidden bg-transparent pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-black">
       <div className="relative flex w-full max-w-md flex-col overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
-        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-72">
-          <img src="/welcome-hero.jpg" alt="" className="h-full w-full object-cover object-center" />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-white/60 to-white" />
-        </div>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 font-extrabold">
           {FLOATING_TERMS.map((t) => (
             <span
@@ -61,8 +57,8 @@ export default function WelcomeScreen() {
           ))}
         </div>
 
-        <div className="relative z-10 flex h-full flex-col px-6 pt-6">
-          <h1 className="mt-12 text-balance text-[56px] font-black leading-[1.05] tracking-tight text-black">
+        <div className="relative z-10 flex h-full flex-col px-6 pt-10 pb-2">
+          <h1 className="mt-20 text-balance text-[56px] font-black leading-[1.05] tracking-tight text-black">
             Tell us<br />
             how you<br />
             actually<br />
@@ -80,12 +76,12 @@ export default function WelcomeScreen() {
             than guess. <span className="font-bold text-[#5798E0]">There are no right answers.</span>
           </p>
 
-          <div className="h-10" />
+          <div className="flex-1 min-h-10" />
 
           <button
             type="button"
             onClick={() => navigate('/survey')}
-            className="mb-3 flex h-16 items-center justify-between rounded-full border-2 border-black bg-orange-500 pl-7 pr-2.5 text-lg font-extrabold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] transition hover:brightness-110 active:translate-y-[3px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)]"
+            className="mb-2 flex h-16 items-center justify-between rounded-full border-2 border-black bg-orange-500 pl-7 pr-2.5 text-lg font-extrabold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] transition hover:brightness-110 active:translate-y-[3px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)]"
           >
             <span>Step inside</span>
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black text-white">
@@ -94,7 +90,7 @@ export default function WelcomeScreen() {
               </svg>
             </span>
           </button>
-          <p className="mb-4 text-center text-sm text-black/60">
+          <p className="mb-2 text-center text-sm text-black/60">
             About 10 minutes. Anonymous unless you choose to share your contact at the end.
           </p>
         </div>

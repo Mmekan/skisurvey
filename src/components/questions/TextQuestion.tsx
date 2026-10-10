@@ -48,7 +48,7 @@ export default function TextQuestion({ question, value, onChange }: Props) {
 
   return (
     <div className="relative flex h-full flex-col">
-      <h1 className="text-2xl font-extrabold leading-tight">{question.prompt}</h1>
+      <h1 className="text-2xl font-extrabold leading-tight text-black">{question.prompt}</h1>
       <div className="relative mt-4 flex-1">
         <textarea
           value={value ?? ''}
@@ -65,7 +65,7 @@ export default function TextQuestion({ question, value, onChange }: Props) {
           placeholder={question.placeholder}
           aria-label={question.prompt}
           inputMode={question.inputMode}
-          className={`h-full min-h-[9rem] w-full resize-none rounded-2xl border-2 border-brown bg-white p-4 text-base leading-relaxed text-brown dark:bg-ink ${
+          className={`h-full min-h-[9rem] w-full resize-none rounded-2xl border-2 border-black bg-white/90 p-4 text-base leading-relaxed text-black placeholder:text-black/40 ${
             question.mic ? 'pr-14' : ''
           }`}
         />
@@ -75,8 +75,8 @@ export default function TextQuestion({ question, value, onChange }: Props) {
             onClick={toggleMic}
             aria-label={listening ? 'Stop voice input' : 'Answer by voice'}
             aria-pressed={listening}
-            className={`absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full border-2 border-brown transition hover:brightness-95 dark:hover:brightness-125 ${
-              listening ? 'bg-amber' : 'bg-white dark:bg-ink'
+            className={`absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full border-2 border-black transition hover:brightness-95 ${
+              listening ? 'bg-[#5798E0] text-white' : 'bg-white text-black'
             }`}
           >
             <svg
@@ -100,12 +100,12 @@ export default function TextQuestion({ question, value, onChange }: Props) {
         )}
       </div>
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-sm text-brown/70">{(value ?? '').length} characters</span>
+        <span className="text-sm text-black/70">{(value ?? '').length} characters</span>
         {question.allowNone && (
           <button
             type="button"
             onClick={() => onChange(question.noneLabel ?? 'None')}
-            className="text-sm font-semibold text-orange-dark underline hover:text-brown"
+            className="text-sm font-semibold text-orange-600 underline hover:text-black"
           >
             {question.noneLabel ?? 'None'}
           </button>
