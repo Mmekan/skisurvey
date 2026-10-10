@@ -37,12 +37,8 @@ export default function WelcomeScreen() {
   }, [])
 
   return (
-    <div className="flex h-dvh justify-center overflow-hidden bg-ivory pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-ink">
-      <div className="relative flex w-full max-w-md flex-col px-6 pt-6">
-        <div
-          aria-hidden="true"
-          className="absolute -right-[60px] -top-[50px] h-56 w-56 rounded-full bg-gradient-to-br from-sunset-red to-sunset-orange opacity-20"
-        />
+    <div className="flex h-dvh justify-center overflow-hidden bg-transparent pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-black">
+      <div className="relative flex w-full max-w-md flex-col rounded-[2rem] border border-white/40 bg-[#F3F7FA]/85 px-6 pt-6 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 font-extrabold">
           {FLOATING_TERMS.map((t) => (
             <span
@@ -52,7 +48,7 @@ export default function WelcomeScreen() {
                 top: t.top,
                 left: t.left,
                 fontSize: t.size,
-                opacity: t.opacity,
+                opacity: t.opacity * 0.7,
                 transform: `rotate(${t.rotate}deg)`,
               }}
             >
@@ -63,27 +59,27 @@ export default function WelcomeScreen() {
 
         <div className="relative z-10 flex h-full flex-col">
           <div className="self-end text-left text-base font-bold uppercase leading-[1.2] tracking-wide">
-            <span className="text-[1.3em] font-black text-sunset-red">S</span>tudent<br />
-            <span className="text-[1.3em] font-black text-sunset-red">K</span>nowledge<br />
-            <span className="text-[1.3em] font-black text-sunset-red">I</span>nterface
+            <span className="text-[1.3em] font-black text-orange-500">S</span>tudent<br />
+            <span className="text-[1.3em] font-black text-orange-500">K</span>nowledge<br />
+            <span className="text-[1.3em] font-black text-orange-500">I</span>nterface
           </div>
 
-          <h1 className="mt-2 text-balance text-[56px] font-black leading-[1.05] tracking-tight">
+          <h1 className="mt-2 text-balance text-[56px] font-black leading-[1.05] tracking-tight text-black">
             Tell us<br />
             how you<br />
             actually<br />
             <span className="mr-1.5 inline-flex items-center align-middle">
-              <span className="h-6 w-6 rounded-full border-[3px] border-ivory bg-sunset-red" />
-              <span className="-ml-2 h-6 w-6 rounded-full border-[3px] border-ivory bg-sunset-orange" />
-              <span className="-ml-2 h-6 w-6 rounded-full border-[3px] border-ivory bg-lime" />
+              <span className="h-6 w-6 rounded-full border-[3px] border-white bg-orange-500" />
+              <span className="-ml-2 h-6 w-6 rounded-full border-[3px] border-white bg-[#5798E0]" />
+              <span className="-ml-2 h-6 w-6 rounded-full border-[3px] border-white bg-[#4FB118]" />
             </span>
             study,
           </h1>
-          <p className="text-2xl font-bold italic text-ink/50">if you do.</p>
+          <p className="text-2xl font-bold italic text-black/50">if you do.</p>
 
-          <p className="mt-8 text-base leading-relaxed text-ink/70">
+          <p className="mt-8 text-base leading-relaxed text-black/70">
             We’re building SKI for Nigerian university students, and we’d rather ask
-            than guess. <span className="font-bold text-lime">There are no right answers.</span>
+            than guess. <span className="font-bold text-[#5798E0]">There are no right answers.</span>
           </p>
 
           <div className="flex-1" />
@@ -91,20 +87,18 @@ export default function WelcomeScreen() {
           <button
             type="button"
             onClick={() => navigate('/survey')}
-            className="mb-4 flex h-16 items-center justify-between rounded-full border-2 border-ink bg-gradient-to-br from-sunset-red to-sunset-orange pl-7 pr-2.5 text-lg font-extrabold text-ivory shadow-[0_4px_0_var(--color-ink)] transition hover:brightness-110 active:translate-y-[3px] active:shadow-[0_1px_0_var(--color-ink)]"
+            className="mb-3 flex h-16 items-center justify-between rounded-full border-2 border-black bg-orange-500 pl-7 pr-2.5 text-lg font-extrabold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] transition hover:brightness-110 active:translate-y-[3px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)]"
           >
             <span>Step inside</span>
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ink text-ivory">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black text-white">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
             </span>
           </button>
-          <p className="mb-10 text-center text-sm text-ink/60">
+          <p className="mb-4 text-center text-sm text-black/60">
             About 10 minutes. Anonymous unless you choose to share your contact at the end.
           </p>
-
-          <div className="flex-1" />
         </div>
       </div>
     </div>
