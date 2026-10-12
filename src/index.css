@@ -2,14 +2,14 @@
 
 @font-face{
   font-family:"DM Sans";
-  src:url("/fonts/DM_Sans/DMSans-Variable.woff") format("woff");
+  src:url("/fonts/DM_Sans/DMSans-Variable.woff2") format("woff2-variations");
   font-weight:100 1000;
   font-style:normal;
   font-display:swap;
 }
 @font-face{
   font-family:"DM Sans";
-  src:url("/fonts/DM_Sans/DMSans-Italic-Variable.woff") format("woff");
+  src:url("/fonts/DM_Sans/DMSans-Italic-Variable.woff2") format("woff2-variations");
   font-weight:100 1000;
   font-style:italic;
   font-display:swap;
