@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+@font-face{
+  font-family:"DM Sans";
+  src:url("/fonts/DM_Sans/DMSans-Variable.woff") format("woff");
+  font-weight:100 1000;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:"DM Sans";
+  src:url("/fonts/DM_Sans/DMSans-Italic-Variable.woff") format("woff");
+  font-weight:100 1000;
+  font-style:italic;
+  font-display:swap;
+}
+
+
 @theme {
   /* existing tokens — unchanged, still used by every screen except Welcome */
   --color-brown: #4B2E2A;
