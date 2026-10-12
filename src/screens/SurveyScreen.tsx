@@ -137,6 +137,7 @@ export default function SurveyScreen() {
   const [saveError, setSaveError] = useState(false)
   const [halfOpen, setHalfOpen] = useState(false)
   const [pointsOpen, setPointsOpen] = useState(false)
+  const createdRef = useRef(false)
 
   // Create the respondent row once, on first load only.
   //
@@ -147,7 +148,8 @@ export default function SurveyScreen() {
   // misconfiguration, which cost a multi-hour debugging detour once
   // already. Generate the id client-side instead and skip .select().
   useEffect(() => {
-    if (respondentId) return
+    if (respondentId || createdRef.current) return
+    createdRef.current = true
     const id = crypto.randomUUID()
     const params = new URLSearchParams(window.location.search)
     const device_id = getDeviceId()
