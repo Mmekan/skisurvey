@@ -8,12 +8,11 @@
 // overflow-hidden`, safe-area padding, and a theme-color sync, or this route
 // becomes the one page with the iOS notch seam.
 import { useEffect } from 'react'
-import { CREAM_DARK, CREAM_LIGHT, setThemeColor } from '../lib/theme'
+import { setThemeColor } from '../lib/theme'
 
 export default function ThankYouScreen() {
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark')
-    setThemeColor(isDark ? CREAM_DARK : CREAM_LIGHT)
+    setThemeColor('#ffffff')
   }, [])
 
   return (
@@ -26,14 +25,15 @@ export default function ThankYouScreen() {
         </div>
 
         <h1 className="text-balance text-4xl font-black leading-tight">
-          That&rsquo;s everything. Thank you.
+          That&rsquo;s everything. Thank you 😌.
         </h1>
         <p className="mt-5 text-base leading-relaxed text-black/70">
           Your answers are recorded. If you left a number we may reach out to ask a
           couple of follow-up questions, nothing more than that.
         </p>
         <p className="mt-8 text-sm text-black/60">
-          There are no right answers here, so nothing you said can be wrong.
+          There are no right answers here, so nothing you said can be wrong, unless you
+          answered gibberish like a weirdo.
         </p>
       </div>
     </div>

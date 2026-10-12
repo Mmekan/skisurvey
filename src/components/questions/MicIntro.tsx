@@ -38,11 +38,17 @@ export default function MicIntro() {
 
   return (
     <div
-      className="mt-4 w-full rounded-3xl border-2 border-black bg-white p-5 text-black shadow-[0_4px_0_rgba(0,0,0,0.8)]"
-      role="region"
-      aria-label="Voice input tip"
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 px-5"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="mic-intro-title"
+      onClick={dismiss}
     >
-      <div className="flex items-center gap-3">
+      <div
+        className="w-full max-w-sm rounded-3xl border-2 border-black bg-white p-5 text-black shadow-[0_6px_0_rgba(0,0,0,0.8)] max-h-[80dvh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3">
           <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border-2 border-black bg-[#F9A136]">
             <svg
               width="20"
@@ -84,6 +90,7 @@ export default function MicIntro() {
         >
           Got it
         </button>
+      </div>
     </div>
   )
 }

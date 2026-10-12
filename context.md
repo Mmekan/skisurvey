@@ -35,7 +35,7 @@
 
 ### What the app can do right now
 
-Run `npm run dev`, open `localhost:5173`. The Welcome screen renders; "Step inside" navigates to the survey; 30 questions across 10 sections render with working branching (`showIf`), per-answer autosave to Supabase, resume-from-localStorage on reload, inline validation, light/dark mode, and voice dictation on text questions. `npm run build` passes.
+Run `npm run dev`, open `localhost:5173`. The Welcome screen renders; "Step inside" navigates to the survey; 30 questions across 10 sections render with working branching (`showIf`), per-answer autosave to Supabase, resume-from-localStorage on reload, inline validation, voice dictation (light-only, dark mode removed 2026-10-12) on text questions. `npm run build` passes.
 
 ### Known limitation, stated plainly
 
@@ -83,23 +83,10 @@ The first working version looked bad on desktop — full-bleed content stretched
 
 Ran the `web-design-guidelines` skill and applied all ten findings. The substantive changes: `ProgressBar` got `role="progressbar"` with `aria-valuenow/min/max` and a "Section N of M" label; the progress bar's decorative segments became `aria-hidden`; textareas got real `aria-label`s; buttons got `hover` states; inline validation messages replaced the disabled-button-with-no-explanation pattern; and safe-area padding was added throughout.
 
-### 6. Dark mode
+### 6. Dark mode — removed 2026-10-12
+Dark mode deleted app-wide (see CLAUDE.md). The token swap and ThemeToggle were removed; app is now light-only.
 
-Added after the guidelines pass. The defining constraint came from the user: *"dark mode makes the color of pages to match page 7 but page 7 becomes light"* — page 7 being the Concept screen, which is styled inverted (`bg-brown`/`text-cream`) relative to every other screen.
-
-The elegant solution was a **token-value swap** in `src/index.css` rather than per-screen overrides:
-
-```css
-.dark {
-  --color-brown: #FEF3E0;   /* was #4B2E2A */
-  --color-cream: #4B2E2A;   /* was #FEF3E0 */
-}
-```
-
-Because the values swap, every normal screen inverts automatically — and so does the Concept screen, which already used those two tokens the other way round, so it flips to the *light* look while everything around it goes dark. The inversion the user asked for falls out of the mechanism for free.
-
-The corollary rule: don't add `dark:` background overrides for brown/cream on any screen. Add them only for things that don't use those two tokens — hardcoded `bg-white` card surfaces get `dark:bg-ink`, and every hardcoded `shadow-[0_4px_0_#4B2E2A]` literal was converted to `shadow-[0_4px_0_var(--color-brown)]` so shadows swap too.
-
+### 7.
 ### 7. The theme toggle — three rejected designs
 
 Worth recording because the reasoning isn't recoverable from the code:

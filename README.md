@@ -56,7 +56,7 @@ React 19 · TypeScript · Vite 8 · Tailwind CSS v4 · Supabase (Postgres + RLS)
 
 ## Status
 
-Phases 0–3 are complete. The survey runs end to end: branching, per-answer autosave, resume, validation, light/dark mode, and voice dictation. Phases 4–7 (admin dashboard, pilot, fielding, analysis) are untouched.
+Phases 0–3 are complete. The survey runs end to end: branching, per-answer autosave, resume, validation, light-only (dark mode removed 2026-10-12), and voice dictation. Phases 4–7 (admin dashboard, pilot, fielding, analysis) are untouched.
 
 **Two things to know before fielding it:** the drafted question wording needs cross-checking against the original 54-question source document, and the iOS notch fix plus dictation have never been tested on physical hardware. Both are tracked in `context.md`.
 

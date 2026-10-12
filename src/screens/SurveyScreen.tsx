@@ -11,11 +11,8 @@ import ConceptScreen from '../components/questions/ConceptScreen'
 import ProgressBar from '../components/ProgressBar'
 import BlurFade from '../components/BlurFade'
 import { fireworks, sideCannons } from '../lib/confetti'
-// import ThemeToggle from '../components/ThemeToggle' // hidden for now — the
-// switch took a row of its own above Continue and cramped the question area on
-// a 375px screen. Dark mode itself still works; only the control is hidden.
 import ThankYouScreen from './ThankYouScreen'
-import { CREAM_DARK, CREAM_LIGHT, setThemeColor } from '../lib/theme'
+import { setThemeColor } from '../lib/theme'
 
 const { sections, questions } = schema as unknown as SurveySchema
 
@@ -126,12 +123,8 @@ function getValidationMessage(q: Question, value: AnswerValue | undefined): stri
 }
 
 export default function SurveyScreen() {
-  // Unlike Welcome, this screen tracks dark mode, so restore whichever
-  // status-bar color actually matches the current .dark state — otherwise
-  // arriving here from Welcome would leave the status bar stuck on ivory.
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains('dark')
-    setThemeColor(isDark ? CREAM_DARK : CREAM_LIGHT)
+    setThemeColor('#ffffff')
   }, [])
 
   const [answers, setAnswers] = useState<Answers>(() => readJson<Answers>(ANSWERS_KEY, {}))
@@ -390,9 +383,6 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
         {validationMessage && (
           <p className="mx-5 mb-1 text-sm font-semibold text-orange-600">{validationMessage}</p>
         )}
-        {/* <div className="flex justify-start px-5 pt-2">
-          <ThemeToggle />
-        </div> */}
         <div className="flex gap-3 px-5 pt-4 pb-6">
           {index > 0 && (
             <button
@@ -428,7 +418,7 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
           <div className="w-full max-w-sm rounded-3xl border-2 border-black bg-white p-6 shadow-[0_8px_0_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
             <p className="text-2xl">⭐</p>
             <h2 className="mt-2 text-xl font-black text-black">You&apos;ve earned points!</h2>
-            <p className="mt-2 text-sm leading-relaxed text-black/70">Complete the survey and leave the same contact at the end, your points will be redeemable on the SKI app at launch.</p>
+            <p className="mt-2 text-sm leading-relaxed text-black/70">Sign up with the same number you filled at the end of this survey and your point will be reedemable on the SKI app at launch.</p>
             <button type="button" onClick={() => setPointsOpen(false)} className="mt-5 h-12 w-full rounded-2xl border-2 border-black bg-[#5798E0] font-bold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] active:translate-y-[2px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)]">Nice — continue</button>
           </div>
         </div>

@@ -303,8 +303,7 @@
       "prompt": "Here's the idea we're exploring:",
       "body": [
         "Engage content matched to your exact course and topic",
-        "Pause and ask a question about the exact part you just watched",
-        "Videos matched to your exact course and topic",
+        "Pause and ask a question about the exact part you just saw/heard",
         "Get tested right after you learn something",
         "Get quizzed later on what you're starting to forget"
       ]
@@ -359,9 +358,18 @@
       "type": "text",
       "required": false,
       "prompt": "Want us to follow up? Leave your number (optional)",
-      "placeholder": "Phone number",
+      "placeholder": "080... (11 digits)",
       "inputMode": "tel",
       "mic": false
+    },
+    {
+      "id": "Q_anon",
+      "section": "follow_up",
+      "type": "text",
+      "required": false,
+      "prompt": "Send an anonymous word to the dev🤓",
+      "placeholder": "Anything on your mind...",
+      "mic": true
     }
   ]
 }

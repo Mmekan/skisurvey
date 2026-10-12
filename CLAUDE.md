@@ -110,13 +110,12 @@ Reached when the respondent advances past the last visible question. Centred `ma
 
 `ProgressBar.tsx` exposes `role="progressbar"` with `aria-valuenow/min/max` and a "Section N of M" label; segments are individually `aria-hidden`.
 
-### `ThemeToggle.tsx`
-
-A compact `h-6 w-11` switch, **left-aligned**, in its own row directly above the Back/Continue row — only in `SurveyScreen`. Not on Welcome (no purpose there), and not a global fixed-position overlay (an earlier version of that overlapped the progress bar and looked like a stray UI bug). Toggles a `.dark` class on `<html>`, persists to `localStorage` under `ski_theme`, defaults to light on first visit with **no** OS `prefers-color-scheme` detection, and updates `<meta name="theme-color">` live.
+### `ThemeToggle.tsx` — removed 2026-10-12
+Dark mode was deleted app-wide. The file has been removed, `.dark` tokens and `@custom-variant dark` deleted from `src/index.css`, and all `setThemeColor` calls now use `#ffffff`. App is light-only.
 
 ### `src/lib/theme.ts`
 
-`setThemeColor(hex)` plus the three exported constants `CREAM_LIGHT` (`#FEF3E0`), `CREAM_DARK` (`#4B2E2A`), `IVORY` (`#FBF2CF`). Thin, but it's the one place browser-chrome colour is decided.
+`setThemeColor(hex)` plus the three exported constants `CREAM_LIGHT` (`#FEF3E0`), `CREAM_LIGHT only (CREAM_DARK removed)` (`#4B2E2A`), `IVORY` (`#FBF2CF`). Thin, but it's the one place browser-chrome colour is decided.
 
 ## Design system
 
@@ -139,17 +138,8 @@ These generate utilities directly (`bg-brown`, `text-orange-dark`, `bg-sunset-re
 
 Wordmark is "S.K.I" in DM Sans Black with hard colour bands. No logo file exists yet.
 
-### Dark mode is a token-value swap, not per-screen overrides
-
-```css
-.dark {
-  color-scheme: dark;
-  --color-brown: #FEF3E0;   /* was #4B2E2A */
-  --color-cream: #4B2E2A;   /* was #FEF3E0 */
-}
-```
-
-Because the values swap rather than the classes changing, every normal screen (`bg-cream`/`text-brown`) inverts automatically — **and so does the Concept screen**, which already used those two tokens the other way round (`bg-brown`/`text-cream`) and therefore flips to the light look while everything around it goes dark. That inversion is the intended behaviour, matching the explicit product rule that dark mode makes every page match page 7 (the Concept screen) and page 7 becomes light. Don't fight it with per-screen `dark:` overrides on brown/cream. Add `dark:` overrides only for things that *don't* use those two tokens — hardcoded `bg-white` card surfaces get `dark:bg-ink`, and every hardcoded `shadow-[0_4px_0_#4B2E2A]` literal was converted to `shadow-[0_4px_0_var(--color-brown)]` so it swaps too.
+### Dark mode — removed 2026-10-12
+Dark mode deleted. The `.dark` block and token swap were removed from `src/index.css`; `src/lib/theme.ts` now only exports `CREAM_LIGHT`/`IVORY` and `setThemeColor`. All screens set theme-color to white.
 
 ### The notch seam (iOS)
 
@@ -220,7 +210,7 @@ Each verified in a browser at 375x812 after the fix.
 - Adding or changing a question → edit `src/data/questions.json` only.
 - Touching RLS → re-run the fake-insert test in `PROJECT_BIBLE.md` §12 first, and again after.
 - Adding a full-screen route → copy the whole `h-dvh overflow-hidden` + safe-area + `setThemeColor()` pattern, or it becomes the one page with the notch seam.
-- Adding a colour → check whether it needs a `.dark` counterpart. Hardcoded hexes don't swap; `var(--color-*)` references do.
+- Adding a colour → no dark counterpart needed — app is light-only.
 
 ### Before calling anything done
 

@@ -53,9 +53,10 @@ export default function TextQuestion({ question, value, onChange }: Props) {
         <textarea
           value={value ?? ''}
           onChange={(e) => {
-            // A phone number that arrived with letters in it can't be called
-            // and can't be dialed back into the input by a validation rule —
-            // filter at the gate instead of validating after the fact.
+            if (question.id === 'Q53_54') {
+              onChange(e.target.value.replace(/\D/g, '').slice(0, 11))
+              return
+            }
             onChange(
               question.inputMode === 'tel'
                 ? e.target.value.replace(/[^0-9+()\- ]/g, '')
@@ -65,6 +66,7 @@ export default function TextQuestion({ question, value, onChange }: Props) {
           placeholder={question.placeholder}
           aria-label={question.prompt}
           inputMode={question.inputMode}
+          maxLength={question.id === 'Q53_54' ? 11 : undefined}
           className={`h-full min-h-[9rem] w-full resize-none rounded-2xl border-2 border-black bg-white/90 p-4 text-base leading-relaxed text-black placeholder:text-black/40 ${
             question.mic ? 'pr-14' : ''
           }`}
@@ -100,7 +102,11 @@ export default function TextQuestion({ question, value, onChange }: Props) {
         )}
       </div>
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-sm text-black/70">{(value ?? '').length} characters</span>
+        {question.id === 'Q53_54' ? (
+          <span className="text-sm text-black/70">{(value ?? '').length}/11 digits - e.g. 08012345678</span>
+        ) : (
+          <span className="text-sm text-black/70">{(value ?? '').length} characters</span>
+        )}
         {question.allowNone && (
           <button
             type="button"

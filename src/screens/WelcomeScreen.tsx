@@ -1,28 +1,20 @@
 // src/screens/WelcomeScreen.tsx
-// Static screen — no animation. Matches the latest approved mockup
-// (sunset red/orange, warm ivory background, lime accent, floating
-// subject terms). Explicitly SUBJECT TO CHANGE — not a locked design,
-// per the decision to let code follow the mockup for now.
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { IVORY, setThemeColor } from '../lib/theme'
+import { setThemeColor } from '../lib/theme'
 
 export default function WelcomeScreen() {
   const navigate = useNavigate()
 
-  // This screen isn't theme-toggle aware (no purpose for dark mode here),
-  // but the status bar color is global, so reset it to Welcome's own ivory
-  // whenever this screen is the one on top — otherwise it'd be stuck
-  // showing whatever the survey screen last set it to.
   useEffect(() => {
-    setThemeColor(IVORY)
+    setThemeColor('#ffffff')
   }, [])
 
   return (
     <div className="flex h-dvh justify-center overflow-hidden bg-white pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-black">
       <div className="relative flex w-full max-w-md flex-col bg-white">
         <div className="relative z-10 flex h-full flex-col px-6 pt-10 pb-2">
-          <h1 className="mt-20 text-balance text-[56px] font-black leading-[1.05] tracking-tight text-black">
+          <h1 className="mt-[60px] text-balance text-[56px] font-black leading-[1.05] tracking-tight text-black">
             Tell us<br />
             how you<br />
             actually<br />
@@ -45,7 +37,7 @@ export default function WelcomeScreen() {
           <button
             type="button"
             onClick={() => navigate('/survey')}
-            className="mb-2 flex h-16 items-center justify-between rounded-full border-2 border-black bg-orange-500 pl-7 pr-2.5 text-lg font-extrabold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] transition hover:brightness-110 active:translate-y-[3px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)]"
+            className="mb-2 flex h-[72px] items-center justify-between rounded-full border-2 border-black bg-orange-500 pl-7 pr-2.5 text-lg font-extrabold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] transition hover:brightness-110 active:translate-y-[3px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)]"
           >
             <span>Step inside</span>
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black text-white">
