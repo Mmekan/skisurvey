@@ -5,6 +5,7 @@ import WelcomeScreen from './screens/WelcomeScreen'
 import SurveySkeleton from './components/SurveySkeleton'
 
 const SurveyScreen = lazy(() => import('./screens/SurveyScreen'))
+const AdminScreen = lazy(() => import('./screens/AdminScreen'))
 
 export default function App() {
   return (
@@ -17,6 +18,14 @@ export default function App() {
             element={
               <Suspense fallback={<SurveySkeleton />}>
                 <SurveyScreen />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <Suspense fallback={<SurveySkeleton />}>
+                <AdminScreen />
               </Suspense>
             }
           />
