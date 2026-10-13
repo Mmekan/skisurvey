@@ -266,12 +266,18 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingContact = useRef<string | null>(null)
 
   const saveContact = useCallback(async (id: string, phone: string) => {
-    // Clearing the field must actually remove the row — a stale number left
-    // behind after someone deletes it is a consent/privacy problem, not a
-    // cosmetic one. Anon's DELETE matched zero rows, so that guarantee only
-    // exists now that the write runs as the table owner via the RPC.
     const error = await rpcSaveContact(id, phone)
     if (error) {
+      if (/23503|foreign key/i.test(error.message)) {
+        try {
+          localStorage.removeItem(RESPONDENT_KEY)
+          localStorage.removeItem(ANSWERS_KEY)
+          localStorage.removeItem(INDEX_KEY)
+          localStorage.removeItem(QUESTION_ID_KEY)
+        } catch { void 0 }
+        location.reload()
+        return
+      }
       console.error('Autosave failed for contact:', error.message)
       setSaveError(true)
     } else {
@@ -310,6 +316,18 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
       const error = await rpcSaveAnswer(respondentId, questionId, value)
       if (error) {
+        if (/23503|foreign key/i.test(error.message)) {
+          try {
+            localStorage.removeItem(RESPONDENT_KEY)
+            localStorage.removeItem(ANSWERS_KEY)
+            localStorage.removeItem(INDEX_KEY)
+            localStorage.removeItem(QUESTION_ID_KEY)
+            localStorage.removeItem('ski_half_seen')
+            localStorage.removeItem('ski_points_seen')
+          } catch { void 0 }
+          location.reload()
+          return
+        }
         console.error('Autosave failed for', questionId, error.message)
         setSaveError(true)
       } else {

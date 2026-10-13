@@ -84,7 +84,7 @@ State lives in `localStorage`, not Supabase — the anon key can write but never
 - The respondent row is created **once**, on first load, with a client-side `crypto.randomUUID()` and `source` pulled from the `?src=` query param. Never `.select()` it — see rule 8.
 - `saveAnswer()` upserts into `answers` with `onConflict: 'respondent_id,question_id'`. A failed save sets `saveError`, which renders a "Check your connection" banner in an `aria-live="polite"` region.
 - Layout: outer `h-dvh overflow-hidden`; **only** the question area (`flex-1 overflow-y-auto px-5 pt-6`) scrolls. ProgressBar, save-error banner, validation message, ThemeToggle row, and the Back/Continue row all sit outside it, so a long list like Q2's 25-department picker never pushes Continue off-screen.
-- On mount it restores `<meta name="theme-color">` to light or dark cream based on the current `.dark` state.
+- On mount it sets `<meta name="theme-color">` to white (`#ffffff`).
 - **Completion (fixed 2026-10-03):** `hasCompleted = index >= visibleQuestions.length` triggers a one-shot `update({ completed_at })` on the respondent row and renders `ThankYouScreen`. Before this, `completed_at` was never written, so an abandoned response at Q4 was indistinguishable from a finished one and completion rate could not be computed.
 - **Q53_54 writes to `contacts`, not `answers` (fixed 2026-10-03):** `saveAnswer` special-cases `CONTACT_QUESTION_ID` so the phone number never lands in the general answers table — that's the whole point of `contacts` being separate (purge consent data without touching real responses). Writes are debounced 600ms because the field saves on every keystroke, and the unmount cleanup **flushes** any pending write rather than cancelling it, so closing the tab inside the debounce window can't silently drop a consented number. Clearing the field deletes the row.
 - ⚠️ **This depends on `supabase-contacts-patch.sql` having been run.** The schema originally had no unique index on `contacts(respondent_id)` and no anon UPDATE/DELETE policy, so the upsert and the delete would have silently affected zero rows (RLS blocks unmatched operations *without* raising an error — the write looks like it saved and didn't). The patch adds all three.
@@ -100,7 +100,7 @@ Reached when the respondent advances past the last visible question. Centred `ma
 | `TapQuestion.tsx` | One-of-N buttons | `aria-pressed`; selected state depresses (`translate-y-[3px]` + reduced shadow) |
 | `MultiSelect.tsx` | Wrap-pill chips | Enforces `maxPicks` by disabling unselected chips at the limit and saying so; live "N selected" counter |
 | `TextQuestion.tsx` | Textarea + optional mic | See below |
-| `ConceptScreen.tsx` | Inverted `bg-brown text-cream` block | Full-bleed via `-mx-5 -mt-6`. **This is the screen that flips light in dark mode** — see below |
+| `ConceptScreen.tsx` | Inverted `bg-brown text-cream` block | Full-bleed via `-mx-5 -mt-6`. |
 
 `TextQuestion.tsx` specifics:
 - Mic is a stroke SVG absolutely positioned in the textarea's bottom-right; the textarea gets `pr-14` to make room. It was an emoji button before — it rendered inconsistently across platforms and wasted vertical space.

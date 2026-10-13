@@ -196,7 +196,7 @@
       "section": "understanding",
       "type": "multiSelect",
       "required": true,
-      "prompt": "How do you usually check if you actually understand a topic?",
+      "prompt": "How do you usually check if you understand a topic?",
       "options": [
         "I try to explain it to someone else",
         "I attempt past questions",
@@ -348,7 +348,7 @@
       "section": "paying",
       "type": "text",
       "required": false,
-      "prompt": "What would need to change for you to consider paying?",
+      "prompt": "What would change your mind into paying?",
       "mic": true,
       "showIf": { "questionId": "Q50", "valueIn": ["Probably not", "No"] }
     },
