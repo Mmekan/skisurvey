@@ -443,7 +443,7 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
           <div className="w-full max-w-sm rounded-3xl border-2 border-black bg-white p-6 shadow-[0_8px_0_rgba(0,0,0,0.8)]" onClick={(e) => e.stopPropagation()}>
             <p className="text-2xl">⭐</p>
             <h2 className="mt-2 text-xl font-black text-black">You&apos;ve earned points!</h2>
-            <p className="mt-2 text-sm leading-relaxed text-black/70">Sign up with the same number you filled at the end of this survey and your point will be reedemable on the SKI app at launch.</p>
+            <p className="mt-2 text-sm leading-relaxed text-black/70">Sign up for the SKI app with the same number you use at the end of this survey and your points will be reedemable on the app at launch.</p>
             <button type="button" onClick={() => setPointsOpen(false)} className="mt-5 h-12 w-full rounded-2xl border-2 border-black bg-[#5798E0] font-bold text-white shadow-[0_4px_0_rgba(0,0,0,0.8)] active:translate-y-[2px] active:shadow-[0_1px_0_rgba(0,0,0,0.8)]">Nice — continue</button>
           </div>
         </div>
