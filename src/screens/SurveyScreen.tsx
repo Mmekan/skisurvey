@@ -138,6 +138,7 @@ export default function SurveyScreen() {
   const [halfOpen, setHalfOpen] = useState(false)
   const [pointsOpen, setPointsOpen] = useState(false)
   const createdRef = useRef(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   // Create the respondent row once, on first load only.
   //
@@ -202,6 +203,10 @@ export default function SurveyScreen() {
   }, [visibleQuestions, currentId, storedIndex])
 
   const current = visibleQuestions[index]
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' })
+  }, [current?.id])
 
   // The respondent is complete once they advance past the last visible
   // question. Without this write, an abandoned response at Q4 was
@@ -374,7 +379,7 @@ const contactTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
           makes its content wider than this padded column — without the clip,
           the scroll area accepts horizontal drags and the concept block slides
           side to side. The bleed itself still renders edge to edge. */}
-        <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden px-5 pt-6">
+        <div ref={scrollRef} className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden px-5 pt-6">
           <BlurFade id={current.id}>
             {current.type === 'tap' && (
               <TapQuestion

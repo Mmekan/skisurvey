@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons.svg', 'og-image.jpg'],
+      includeAssets: ['favicon.png', 'icons.svg', 'og-image.jpg'],
       manifest: {
         name: 'SKI Survey',
         short_name: 'SKI Survey',
@@ -19,7 +19,7 @@ export default defineConfig({
         display: 'standalone',
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,woff2,jpg}'],
+        globPatterns: ['**/*.{js,css,html,svg,woff2,jpg,png}'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
